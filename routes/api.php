@@ -2,13 +2,22 @@
 
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\QuestionController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Student\AttemptController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Public Auth Routes
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    // Student & User Exam list with caching
+    Route::get('/exams', [ExamController::class, 'index']);
+});
 
 // Admin Routes
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {

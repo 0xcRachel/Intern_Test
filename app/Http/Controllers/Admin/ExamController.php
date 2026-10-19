@@ -7,10 +7,11 @@ use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use App\Http\Resources\ExamResource;
 use App\Models\Exam;
+use App\Services\AnalyticsService;
 use App\Services\ExamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Cache;
 
 class ExamController extends Controller
 {
@@ -18,14 +19,27 @@ class ExamController extends Controller
         private readonly ExamService $examService,
     ) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
-        $exams = $this->examService->list(
-            search: $request->query('search'),
-            perPage: (int) $request->query('per_page', 15),
-        );
+        $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 15);
+        $page = (int) $request->query('page', 1);
 
-        return ExamResource::collection($exams);
+        $cacheKey = "exams_list_" . md5("{$search}_{$perPage}_{$page}");
+        $isHit = Cache::has($cacheKey);
+
+        $exams = Cache::remember($cacheKey, 60, function () use ($search, $perPage) {
+            return $this->examService->list(
+                search: $search,
+                perPage: $perPage,
+            );
+        });
+
+        $data = ExamResource::collection($exams)->response()->getData(true);
+        $data['cache_status'] = $isHit ? 'HIT' : 'MISS';
+
+        return response()->json($data, 200)
+            ->header('X-Cache', $isHit ? 'HIT' : 'MISS');
     }
 
     public function store(StoreExamRequest $request): JsonResponse
@@ -56,7 +70,7 @@ class ExamController extends Controller
         return response()->json(['message' => 'Exam deleted successfully.'], 200);
     }
 
-    public function statistics(int $id, \App\Services\AnalyticsService $analyticsService): JsonResponse
+    public function statistics(int $id, AnalyticsService $analyticsService): JsonResponse
     {
         $stats = $analyticsService->getExamStatistics($id);
 
