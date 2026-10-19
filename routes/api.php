@@ -17,6 +17,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     });
 
     Route::apiResource('exams', ExamController::class);
+    Route::get('exams/{id}/statistics', [ExamController::class, 'statistics']);
     Route::get('exams/{exam}/questions', [QuestionController::class, 'index']);
     Route::apiResource('questions', QuestionController::class)->except(['index']);
 });

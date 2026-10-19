@@ -148,6 +148,7 @@ class ExamService
             'is_passed' => $isPassed,
             'submitted_answers' => $submittedAnswers,
             'answers' => $submittedAnswers,
+            'wrong_questions' => $wrongQuestions,
             'end_time' => $now,
             'submitted_at' => $now,
             'status' => 'completed',

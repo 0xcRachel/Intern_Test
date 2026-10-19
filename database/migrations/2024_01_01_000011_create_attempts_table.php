@@ -16,6 +16,7 @@ return new class extends Migration
                 $table->json('questions')->nullable();
                 $table->json('submitted_answers')->nullable();
                 $table->json('answers')->nullable();
+                $table->json('wrong_questions')->nullable();
                 $table->float('score')->default(0);
                 $table->float('total_points')->default(0);
                 $table->float('percentage')->default(0);

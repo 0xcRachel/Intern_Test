@@ -55,4 +55,11 @@ class ExamController extends Controller
 
         return response()->json(['message' => 'Exam deleted successfully.'], 200);
     }
+
+    public function statistics(int $id, \App\Services\AnalyticsService $analyticsService): JsonResponse
+    {
+        $stats = $analyticsService->getExamStatistics($id);
+
+        return response()->json($stats);
+    }
 }
