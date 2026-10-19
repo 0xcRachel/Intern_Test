@@ -63,5 +63,40 @@ class DatabaseSeeder extends Seeder
         Option::create(['question_id' => $q2->id, 'option_text' => '4', 'is_correct' => false]);
         Option::create(['question_id' => $q2->id, 'option_text' => '5', 'is_correct' => false]);
         Option::create(['question_id' => $q2->id, 'option_text' => '2', 'is_correct' => false]);
+
+        // 4. Sample IELTS Package with Units & Documents
+        $package = \App\Models\Package::firstOrCreate(
+            ['title' => 'IELTS Comprehensive Band 8.0+ Prep'],
+            [
+                'description' => 'Master all 4 IELTS modules with authentic Cambridge practice tests, audio tracks, and strategies.',
+                'price' => 49.99,
+                'is_active' => true,
+            ]
+        );
+
+        $unit1 = \App\Models\Unit::firstOrCreate(
+            ['package_id' => $package->id, 'title' => 'Unit 1: Academic & General Reading Mastery'],
+            ['description' => 'Skimming, scanning, True/False/Not Given, and summary completion mastery.', 'order' => 1]
+        );
+
+        \App\Models\Document::firstOrCreate(
+            ['unit_id' => $unit1->id, 'title' => 'Academic Reading Official Handbook.pdf'],
+            ['type' => 'pdf', 'file_path' => 'documents/reading_handbook.pdf', 'total_pages' => 36, 'preview_pages' => 5]
+        );
+
+        $unit2 = \App\Models\Unit::firstOrCreate(
+            ['package_id' => $package->id, 'title' => 'Unit 2: Listening Section 1-4 Immersion'],
+            ['description' => 'Accents, note-taking, map labeling, and fast-speech comprehension.', 'order' => 2]
+        );
+
+        \App\Models\Document::firstOrCreate(
+            ['unit_id' => $unit2->id, 'title' => 'Listening Practice Test 1 - Audio Track.mp3'],
+            ['type' => 'audio', 'file_path' => 'documents/listening_test1.mp3', 'total_pages' => 1, 'preview_pages' => 1]
+        );
+
+        \App\Models\Document::firstOrCreate(
+            ['unit_id' => $unit2->id, 'title' => 'Listening Transcripts & Answer Keys.pdf'],
+            ['type' => 'pdf', 'file_path' => 'documents/transcripts.pdf', 'total_pages' => 18, 'preview_pages' => 3]
+        );
     }
 }
