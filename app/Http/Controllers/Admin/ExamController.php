@@ -44,6 +44,7 @@ class ExamController extends Controller
 
     public function store(StoreExamRequest $request): JsonResponse
     {
+        Cache::flush();
         $exam = $this->examService->create($request->validated());
 
         return (new ExamResource($exam))
@@ -58,6 +59,7 @@ class ExamController extends Controller
 
     public function update(UpdateExamRequest $request, Exam $exam): ExamResource
     {
+        Cache::flush();
         $updated = $this->examService->update($exam, $request->validated());
 
         return new ExamResource($updated);
@@ -65,6 +67,7 @@ class ExamController extends Controller
 
     public function destroy(Exam $exam): JsonResponse
     {
+        Cache::flush();
         $this->examService->delete($exam);
 
         return response()->json(['message' => 'Exam deleted successfully.'], 200);
