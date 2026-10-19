@@ -2,7 +2,7 @@
   "info": {
     "name": "ExamPlatform API Collection",
     "_postman_id": "c1f7b889-4a92-4c91-9e20-7b58bf2a091e",
-    "description": "Complete Postman collection for ExamPlatform APIs covering Auth, Admin CRUD, Student Execution, Analytics, and Caching.",
+    "description": "Complete Postman collection for ExamPlatform APIs covering Auth, Admin CRUD, Student Execution, Autosave, Analytics, Caching, and IELTS Package/Document Previews.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -28,6 +28,11 @@
     },
     {
       "key": "attempt_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "document_id",
       "value": "1",
       "type": "string"
     }
@@ -488,7 +493,7 @@
       ]
     },
     {
-      "name": "Student - Exam Execution & Results",
+      "name": "Student - Exam Execution, Autosave & Results",
       "item": [
         {
           "name": "Start Exam Attempt",
@@ -522,6 +527,56 @@
               "raw": "{{base_url}}/exams/{{exam_id}}/attempts",
               "host": ["{{base_url}}"],
               "path": ["exams", "{{exam_id}}", "attempts"]
+            }
+          }
+        },
+        {
+          "name": "Autosave Attempt Answers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"answers\": [\n        {\"question_id\": 1, \"option_id\": 1}\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attempts/{{attempt_id}}/save",
+              "host": ["{{base_url}}"],
+              "path": ["attempts", "{{attempt_id}}", "save"]
+            }
+          }
+        },
+        {
+          "name": "Resume In-Progress Attempt",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attempts/{{attempt_id}}/resume",
+              "host": ["{{base_url}}"],
+              "path": ["attempts", "{{attempt_id}}", "resume"]
             }
           }
         },
@@ -572,6 +627,62 @@
               "raw": "{{base_url}}/attempts/{{attempt_id}}",
               "host": ["{{base_url}}"],
               "path": ["attempts", "{{attempt_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "IELTS Flow - Packages & Document Previews",
+      "item": [
+        {
+          "name": "List Packages with Units & Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/packages",
+              "host": ["{{base_url}}"],
+              "path": ["packages"]
+            }
+          }
+        },
+        {
+          "name": "Get Package Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/packages/1",
+              "host": ["{{base_url}}"],
+              "path": ["packages", "1"]
+            }
+          }
+        },
+        {
+          "name": "Request Time-Boxed Document Preview URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/{{document_id}}/preview",
+              "host": ["{{base_url}}"],
+              "path": ["documents", "{{document_id}}", "preview"]
             }
           }
         }

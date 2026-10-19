@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\Student\AttemptController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +36,20 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 // Student Routes
 Route::middleware(['auth:sanctum', 'student'])->group(function () {
     Route::post('/exams/{id}/attempts', [AttemptController::class, 'start']);
+    Route::post('/attempts/{id}/save', [AttemptController::class, 'autosave']);
+    Route::patch('/attempts/{id}/save', [AttemptController::class, 'autosave']);
+    Route::get('/attempts/{id}/resume', [AttemptController::class, 'resume']);
     Route::post('/attempts/{id}/submit', [AttemptController::class, 'submit']);
     Route::get('/attempts/{id}', [AttemptController::class, 'show']);
 });
+
+// IELTS Flow Routes
+Route::get('/packages', [PackageController::class, 'index']);
+Route::get('/packages/{id}', [PackageController::class, 'show']);
+
+// Document Preview Routes (Rate-limited time-boxed signed URLs)
+Route::post('/documents/{id}/preview', [DocumentController::class, 'preview'])
+    ->middleware('throttle:10,1');
+
+Route::get('/documents/{document}/stream', [DocumentController::class, 'stream'])
+    ->name('documents.stream');
