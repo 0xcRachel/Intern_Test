@@ -7,6 +7,7 @@ use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use App\Services\ExamService;
 use App\Services\QuestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,6 +16,7 @@ class QuestionController extends Controller
 {
     public function __construct(
         private readonly QuestionService $questionService,
+        private readonly ExamService $examService,
     ) {}
 
     public function index(int $examId): AnonymousResourceCollection
@@ -26,6 +28,7 @@ class QuestionController extends Controller
 
     public function store(StoreQuestionRequest $request): JsonResponse
     {
+        $this->examService->bumpListCacheVersion();
         $question = $this->questionService->create($request->validated());
 
         return (new QuestionResource($question))
@@ -40,6 +43,7 @@ class QuestionController extends Controller
 
     public function update(UpdateQuestionRequest $request, Question $question): QuestionResource
     {
+        $this->examService->bumpListCacheVersion();
         $updated = $this->questionService->update($question, $request->validated());
 
         return new QuestionResource($updated);
@@ -47,6 +51,7 @@ class QuestionController extends Controller
 
     public function destroy(Question $question): JsonResponse
     {
+        $this->examService->bumpListCacheVersion();
         $this->questionService->delete($question);
 
         return response()->json(['message' => 'Question deleted successfully.'], 200);

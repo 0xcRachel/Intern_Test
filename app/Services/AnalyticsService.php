@@ -12,7 +12,7 @@ class AnalyticsService
     {
         $exam = Exam::findOrFail($examId);
 
-        if (extension_loaded('mongodb') && config('database.default') !== 'sqlite') {
+        if (extension_loaded('mongodb') && config('database.mongodb_enabled', true) && config('database.default') !== 'sqlite') {
             return $this->aggregateMongo($exam);
         }
 
@@ -58,11 +58,12 @@ class AnalyticsService
             ]);
         })->toArray();
 
-        $userIds = array_map(fn ($item) => (int) $item['_id'], $topStudentsMongo);
+        // laravel-mongodb normalizes the aggregation "_id" field to "id".
+        $userIds = array_map(fn ($item) => (int) ($item['_id'] ?? $item['id']), $topStudentsMongo);
         $users = User::whereIn('id', $userIds)->pluck('name', 'id');
 
         $topStudents = array_map(function ($item) use ($users) {
-            $userId = (int) $item['_id'];
+            $userId = (int) ($item['_id'] ?? $item['id']);
             return [
                 'user_id' => $userId,
                 'user_name' => $users[$userId] ?? 'Unknown',
@@ -89,7 +90,7 @@ class AnalyticsService
 
         $formattedIncorrect = array_map(function ($item) {
             return [
-                'question_id' => (int) $item['_id'],
+                'question_id' => (int) ($item['_id'] ?? $item['id']),
                 'question_text' => $item['question_text'] ?? null,
                 'incorrect_count' => (int) $item['incorrect_count'],
             ];

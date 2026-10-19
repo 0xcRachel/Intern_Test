@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-if (extension_loaded('mongodb')) {
+use App\Casts\NativeArray;
+
+if (extension_loaded('mongodb') && config('database.mongodb_enabled', true)) {
     class BaseActivityLog extends \MongoDB\Laravel\Eloquent\Model {}
 } else {
     class BaseActivityLog extends \Illuminate\Database\Eloquent\Model {}
@@ -16,7 +18,7 @@ class ActivityLog extends BaseActivityLog
 
     public function getConnectionName()
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             return config('database.default');
         }
 
@@ -25,7 +27,7 @@ class ActivityLog extends BaseActivityLog
 
     public function __construct(array $attributes = [])
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             $this->connection = config('database.default');
         }
         parent::__construct($attributes);
@@ -44,7 +46,7 @@ class ActivityLog extends BaseActivityLog
 
     protected $casts = [
         'user_id' => 'integer',
-        'metadata' => 'array',
-        'properties' => 'array',
+        'metadata' => NativeArray::class,
+        'properties' => NativeArray::class,
     ];
 }

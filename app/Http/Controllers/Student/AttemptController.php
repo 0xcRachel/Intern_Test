@@ -48,6 +48,12 @@ class AttemptController extends Controller
             'Unauthorized. You can only submit your own attempt.'
         );
 
+        abort_if(
+            $attempt->status === 'completed',
+            422,
+            'This attempt has already been submitted.'
+        );
+
         $validated = $request->validate([
             'answers' => ['sometimes', 'array'],
         ]);

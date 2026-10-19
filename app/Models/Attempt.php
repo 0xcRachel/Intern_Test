@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-if (extension_loaded('mongodb')) {
+use App\Casts\NativeArray;
+
+if (extension_loaded('mongodb') && config('database.mongodb_enabled', true)) {
     class BaseAttempt extends \MongoDB\Laravel\Eloquent\Model {}
 } else {
     class BaseAttempt extends \Illuminate\Database\Eloquent\Model {}
@@ -16,7 +18,7 @@ class Attempt extends BaseAttempt
 
     public function getConnectionName()
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             return config('database.default');
         }
 
@@ -25,7 +27,7 @@ class Attempt extends BaseAttempt
 
     public function __construct(array $attributes = [])
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             $this->connection = config('database.default');
         }
         parent::__construct($attributes);
@@ -52,10 +54,10 @@ class Attempt extends BaseAttempt
     protected $casts = [
         'user_id' => 'integer',
         'exam_id' => 'integer',
-        'questions' => 'array',
-        'submitted_answers' => 'array',
-        'answers' => 'array',
-        'wrong_questions' => 'array',
+        'questions' => NativeArray::class,
+        'submitted_answers' => NativeArray::class,
+        'answers' => NativeArray::class,
+        'wrong_questions' => NativeArray::class,
         'score' => 'float',
         'total_points' => 'float',
         'percentage' => 'float',

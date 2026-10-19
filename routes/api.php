@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public Auth Routes
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware('throttle:6,1');
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -19,6 +21,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     // Student & User Exam list with caching
     Route::get('/exams', [ExamController::class, 'index']);
+
+    // Document Preview signer (rate-limited, signed URL is user-bound)
+    Route::post('/documents/{id}/preview', [DocumentController::class, 'preview'])
+        ->middleware('throttle:10,1');
 });
 
 // Admin Routes
@@ -47,9 +53,7 @@ Route::middleware(['auth:sanctum', 'student'])->group(function () {
 Route::get('/packages', [PackageController::class, 'index']);
 Route::get('/packages/{id}', [PackageController::class, 'show']);
 
-// Document Preview Routes (Rate-limited time-boxed signed URLs)
-Route::post('/documents/{id}/preview', [DocumentController::class, 'preview'])
-    ->middleware('throttle:10,1');
-
+// Signed preview stream (the signature is the access grant; no bearer token
+// is required so the URL can be embedded in a viewer/iframe).
 Route::get('/documents/{document}/stream', [DocumentController::class, 'stream'])
     ->name('documents.stream');

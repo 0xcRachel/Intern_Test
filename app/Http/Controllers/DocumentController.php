@@ -18,12 +18,12 @@ class DocumentController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        // 15-minute time-boxed signed URL
+        // 15-minute time-boxed signed URL, bound to the requesting user
         $expiresAt = Carbon::now()->addMinutes(15);
         $signedUrl = URL::temporarySignedRoute(
             'documents.stream',
             $expiresAt,
-            ['document' => $document->id]
+            ['document' => $document->id, 'user' => $request->user()->id]
         );
 
         return response()->json([
@@ -46,16 +46,31 @@ class DocumentController extends Controller
             abort(403, 'Invalid or expired preview URL signature.');
         }
 
+        $userId = $request->query('user');
+
+        if ($userId === null) {
+            abort(403, 'Preview URL is missing the user context.');
+        }
+
+        // If the request also carries a bearer token, make sure the signed URL
+        // belongs to that user. Unauthenticated viewers are still allowed so
+        // the signed URL can be embedded in a document/audio iframe.
+        $authenticatedUser = $request->user('sanctum');
+
+        if ($authenticatedUser && (int) $authenticatedUser->id !== (int) $userId) {
+            abort(403, 'This preview URL belongs to another user.');
+        }
+
         $doc = Document::findOrFail($document);
 
         // Log to MongoDB PreviewLog
         $expires = $request->query('expires');
         PreviewLog::create([
-            'user_id' => $request->user()?->id,
+            'user_id' => (int) $userId,
             'document_id' => $doc->id,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'expires_at' => $expires ? Carbon::createFromTimestamp($expires) : null,
+            'expires_at' => $expires ? Carbon::createFromTimestamp((int) $expires) : null,
             'accessed_at' => Carbon::now(),
         ]);
 

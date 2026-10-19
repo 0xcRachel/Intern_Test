@@ -12,7 +12,10 @@ class OptionResource extends JsonResource
         return [
             'id' => $this->id,
             'option_text' => $this->option_text,
-            'is_correct' => $this->is_correct,
+            'is_correct' => $this->when(
+                $request->user()?->role === 'admin',
+                fn () => (bool) $this->is_correct,
+            ),
         ];
     }
 }

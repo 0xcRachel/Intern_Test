@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,34 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => strtolower($validated['email']),
+            'password' => $validated['password'],
+            // Public registration can only create students. Admin accounts
+            // are provisioned by the seeder or another admin.
+            'role' => 'student',
+        ]);
+
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+        ], 201);
+    }
+
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([

@@ -1,6 +1,6 @@
 # ExamPlatform — bàn giao thiết kế và triển khai
 
-Ngày rà soát: 19/10/2026. Nguồn đối chiếu: mã frontend, routes API, controllers, resources, services và seeders trong repository. Tài liệu này không xác nhận dữ liệu hoặc dịch vụ đang chạy.
+Ngày rà soát: 19/10/2026. Nguồn đối chiếu: mã frontend, routes API, controllers, resources, services và seeders trong repository. Trạng thái runtime Docker/MySQL/MongoDB được kiểm tra riêng và ghi trong `README.md`; tài liệu này tập trung vào hợp đồng giao diện.
 
 ## Phạm vi và trạng thái
 
@@ -8,9 +8,9 @@ Yêu cầu thiết kế: tiếp tục từ dự án hiện tại, sử dụng c�
 
 Mục tiêu bàn giao là bộ màn hình desktop rộng 1440 px và mobile rộng 390 px, đủ rõ để chuyển thành component React và luồng hoạt động thực tế. Các số liệu trong mockup là **dữ liệu minh họa**, không phải số liệu lấy từ hệ thống đang chạy. Khi dùng nội dung seed, cần giữ đúng số lượng và quan hệ của seed; không trình bày số liệu minh họa như thành tích thật của người dùng.
 
-Người dùng đã đăng nhập Figma web và mở file thiết kế. Bộ màn hình đang được dựng và kiểm tra qua trình duyệt trong [file Figma](https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/). Không sử dụng Figma MCP trong phiên này. Xem design-brief.md để biết trạng thái kiểm tra cuối cùng.
+[File Figma](https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/) được giữ làm tham chiếu, nhưng nội dung các frame không thể xác minh từ repository này. Các màn hình dưới đây là đề xuất đã đối chiếu API, không phải ảnh chụp Figma đã kiểm tra. Xem design-brief.md để biết phạm vi và giới hạn.
 
-Tài liệu này chỉ bổ sung hồ sơ thiết kế; không thay đổi ứng dụng, API hay database.
+Tài liệu này mô tả hồ sơ thiết kế; các thay đổi backend gần nhất được triển khai trong repository và kiểm thử bằng bộ test hiện có.
 
 ## Kiến trúc giao diện hiện tại
 
@@ -57,6 +57,7 @@ Tất cả URL bên dưới ngoài `/` đều là đề xuất tổ chức front
 | --- | --- | --- |
 | `/` | Điểm vào: danh sách đề hoặc điều hướng đến thư viện | Quyết định điều hướng khi triển khai |
 | `/login` | Đăng nhập | `POST /api/login`, `GET /api/user` |
+| `/register` | Đăng ký tài khoản học viên | `POST /api/register` |
 | `/packages` | Thư viện IELTS | `GET /api/packages` |
 | `/packages/:packageId` | Chi tiết gói | `GET /api/packages/{id}` |
 | `/exams` | Danh sách đề | `GET /api/exams` |
@@ -74,11 +75,12 @@ Xem trước có thể là dialog hoặc trang con sau này; không cần invent
 
 | Endpoint thực tế | Quyền | UI và dữ liệu |
 | --- | --- | --- |
+| `POST /api/register` | Public | Gửi `name`, `email`, `password`, `password_confirmation`; tài khoản tạo ra luôn là `student`, trả token giống login |
 | `POST /api/login` | Public | Gửi `email`, `password`; frontend hiện dùng `token` và `user.name` trong phản hồi |
 | `POST /api/logout` | Đăng nhập | Đăng xuất và xóa trạng thái xác thực ở frontend |
 | `GET /api/user` | Đăng nhập | Khôi phục danh tính; phân biệt `admin`/`student` từ người dùng thực tế |
 
-Chưa có route đăng ký, quên mật khẩu, chỉnh hồ sơ hoặc đổi mật khẩu trong `routes/api.php`. Không vẽ các CTA đó như tính năng đã hoạt động.
+Chưa có route quên mật khẩu, xác minh email, chỉnh hồ sơ hoặc đổi mật khẩu trong `routes/api.php`. Không vẽ các CTA đó như tính năng đã hoạt động.
 
 ### Tài liệu IELTS
 
@@ -89,8 +91,8 @@ Chưa có route đăng ký, quên mật khẩu, chỉnh hồ sơ hoặc đổi m
 | Package | `id`, `title`, `description`, `price`, `is_active` | Tên, nội dung giới thiệu, giá; không có trường tiền tệ riêng |
 | Unit | `id`, `package_id`, `title`, `description`, `order`, `documents` | Accordion/danh sách học phần, số lượng tài liệu tính từ `documents.length` |
 | Document | `id`, `unit_id`, `title`, `type`, `total_pages`, `preview_pages` | `type` phân biệt PDF/audio; với audio không dùng nhãn “trang” như một thời lượng phát |
-| `POST /api/documents/{id}/preview` | `document_id`, `title`, `type`, `total_pages`, `preview_pages`, `preview_url`, `expires_at` | Yêu cầu quyền xem trước trong 15 phút; giới hạn 10 request/phút |
-| `GET /api/documents/{document}/stream` | `status`, `document`, `message` | Kiểm tra chữ ký URL và ghi log; hiện trả JSON metadata, không stream bytes PDF/audio |
+| `POST /api/documents/{id}/preview` | `document_id`, `title`, `type`, `total_pages`, `preview_pages`, `preview_url`, `expires_at` | Yêu cầu đăng nhập; URL 15 phút gắn với user; giới hạn 10 request/phút |
+| `GET /api/documents/{document}/stream` | `status`, `document`, `message` | Kiểm tra chữ ký và `user` trong URL, ghi log; nếu request có bearer token thì phải đúng user. Hiện trả JSON metadata, không stream bytes PDF/audio |
 
 Giá seed là `49.99`; UI cũ hiển thị `$`, nhưng database không mô hình hóa currency. Không tự đổi sang VND. Không có purchase, payment, enrollment hay quyền truy cập sau mua. CTA đúng với khả năng hiện có là **Xem tài liệu**/**Xem trước**.
 
@@ -98,17 +100,17 @@ Giá seed là `49.99`; UI cũ hiển thị `$`, nhưng database không mô hình
 
 | Endpoint thực tế | Trường/đầu vào | Cách dùng |
 | --- | --- | --- |
-| `GET /api/exams` | Query `search`, `page`, `per_page`; phản hồi collection có `data`, thông tin phân trang và `cache_status` | Tìm theo tiêu đề, phân trang. Cache không cần xuất hiện trong UI học viên |
-| Exam resource | `id`, `title`, `description`, `duration_minutes`, `passing_score`, `questions`, `questions_count` khi được load count | Số câu lấy từ trường count nếu có, nếu không từ `questions.length`; `passing_score` là phần trăm |
-| Question | `id`, `question_text`, `type`, `points`, `options` | Câu hỏi và trọng số điểm |
-| Option | `id`, `option_text` | Nhãn đáp án; không lấy thứ tự A/B/C/D làm ID vì câu hỏi và lựa chọn được xáo trộn |
+| `GET /api/exams` | Query `search`, `page`, `per_page`; phản hồi collection có `data`, thông tin phân trang và `cache_status` | Tìm theo tiêu đề, phân trang. Cache key tách `admin`/`student` và dùng `exams_cache_version`; cache không cần xuất hiện trong UI học viên |
+| Exam resource | `id`, `title`, `description`, `duration_minutes`, `passing_score`, `questions_count`; `questions` chỉ có ở admin list | Student list không tải câu hỏi/option; admin list tải đầy đủ để quản trị. `passing_score` là phần trăm |
+| Question | `id`, `question_text`, `type`, `points`, `options` | Câu hỏi và trọng số điểm; chỉ admin thấy options kèm đáp án đúng |
+| Option | `id`, `option_text`, `is_correct` (chỉ admin) | Nhãn đáp án; không lấy thứ tự A/B/C/D làm ID vì câu hỏi và lựa chọn được xáo trộn. Resource ẩn `is_correct` với student |
 | `POST /api/exams/{id}/attempts` | `attempt_id`, `id`, `exam_id`, `exam_title`, `duration_minutes`, `start_time`, `questions` | Tạo snapshot câu hỏi, bắt đầu đồng hồ; chỉ student |
 | `POST` hoặc `PATCH /api/attempts/{id}/save` | Gửi `answers: [{question_id, option_id}]`; phản hồi `saved_at`, `answers` | Lưu lựa chọn, chỉ thông báo thành công khi API xác nhận |
 | `GET /api/attempts/{id}/resume` | `status`, `remaining_seconds`, `questions`, `saved_answers`, `exam_title` | Tiếp tục phiên đã biết ID; phục hồi câu trả lời và thời gian server |
 | `POST /api/attempts/{id}/submit` | Gửi `answers`; trả `score`, `total_points`, `percentage`, `is_passed`, `wrong_questions`, `correct_answers`, `status` | Nộp bài và chấm điểm |
 | `GET /api/attempts/{id}` | Thông tin kết quả, `exam_id`, `start_time`, `end_time`, câu sai và đáp án đúng | Trang kết quả; chỉ chủ sở hữu xem được |
 
-Kết quả trả ID đáp án đúng/sai, không cung cấp đầy đủ text của mọi option. Trang xem lại cần giữ hoặc khôi phục snapshot câu hỏi để ghép ID với nhãn. Không sáng tác lời giải chi tiết vì backend chưa có trường giải thích.
+Kết quả trả ID đáp án đúng/sai, không cung cấp đầy đủ text của mọi option. Modal kết quả hiện giữ snapshot `activeAttempt` để ghép ID với nhãn và hiển thị câu sai/đáp án đúng. Một trang kết quả tải lại độc lập sẽ cần API giàu text hơn; không sáng tác lời giải chi tiết vì backend chưa có trường giải thích.
 
 Không có API liệt kê lịch sử mọi phiên của học viên. Một liên kết **Tiếp tục làm bài** chỉ hoạt động khi frontend đã lưu được attempt ID hoặc có nguồn lấy ID thực tế. Không vẽ danh sách lịch sử và tiến độ tổng như chức năng đã có.
 
@@ -163,7 +165,7 @@ Seed giới thiệu bao quát bốn kỹ năng, nhưng dữ liệu chi tiết hi
 
 **Cần backend hoặc tích hợp bổ sung:** phát PDF/audio thực; mua gói và thanh toán; tiến độ học theo tài khoản; lịch sử làm bài tổng; phân tích kỹ năng/band; biểu đồ theo thời gian; profile và reset mật khẩu; multiple-choice grading; các trạng thái xuất bản đề.
 
-**Điểm cần sửa trước một luồng thi dùng thực tế:** resource đáp án hiện trả `is_correct` qua danh sách đề chung; không được tuyên bố đáp án được bảo mật chỉ dựa vào UI. Hợp đồng student API cần loại bỏ thông tin này. Đây là ghi nhận từ mã nguồn, chưa có thay đổi backend trong công việc thiết kế.
+**Đã sửa trong backend (19/10/2026):** student list dùng `withCount('questions')` và không tải `questions/options`; `OptionResource` chỉ trả `is_correct` khi người gọi là admin; cache key tách vai trò và dùng `exams_cache_version`; thay đổi exam/question/option đều bump version để danh sách không bị stale. Vì vậy hợp đồng student không còn phụ thuộc vào UI để giấu đáp án. Kiểm thử tương ứng nằm trong `tests/Feature/ExamListCacheTest.php`.
 
 ## Trạng thái bắt buộc trong component và frame
 
@@ -211,6 +213,20 @@ Component cần quy định rõ default, hover, focus, disabled, loading, select
 - Dropdown thống kê hiện hardcode đề; cần lấy danh sách đề thực từ API.
 - UI hiện hiển thị menu không đúng vai trò rồi để API từ chối. Menu và hành động phải dựa trên vai trò đã xác thực.
 - Preview URL hiện được lưu nhưng không dùng để hiển thị nội dung thật. Không biến mockup player thành cam kết tính năng đã hoàn thành.
+
+## Trạng thái kiểm thử và runtime (19/10/2026)
+
+- Docker Compose: 4 container chạy; `http://localhost:8080` trả 200; MySQL
+  8.0.46 và MongoDB 7.0.45 kết nối được.
+- Bộ test: 56 passed (263 assertions), dùng SQLite in-memory với
+  `MONGO_ENABLED=false`.
+- MongoDB lưu `attempts.questions`, `submitted_answers`, `answers`,
+  `wrong_questions` dưới dạng native BSON array; index được tạo bởi
+  `app:ensure-mongo-indexes`.
+- Student exam list không còn trả câu hỏi/option hoặc `is_correct`; admin list
+  vẫn có đầy đủ để quản trị. Preview signer yêu cầu đăng nhập và URL gắn user.
+- Figma: chưa có bằng chứng kiểm tra frame trong repository; không tuyên bố
+  hoàn tất thiết kế Figma.
 
 ## Tệp nguồn đối chiếu
 

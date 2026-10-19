@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
     libpng-dev \
@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     curl \
     libzip-dev \
     openssl-dev \
+    linux-headers \
     autoconf \
     g++ \
     make
@@ -31,9 +32,14 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction 2>/dev/null || true
+RUN composer install --optimize-autoloader --no-interaction
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 9000
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]

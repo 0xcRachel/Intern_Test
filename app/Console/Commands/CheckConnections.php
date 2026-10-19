@@ -16,13 +16,17 @@ class CheckConnections extends Command
         $this->info('Checking database connections...');
         $allOk = true;
 
-        // MySQL
+        // SQL (MySQL in Docker/local, SQLite in tests)
         try {
-            DB::connection('mysql')->getPdo();
-            $version = DB::connection('mysql')->selectOne('SELECT VERSION() as v')->v;
-            $this->info("✓ MySQL connected — v{$version}");
+            $connection = DB::connection();
+            $connection->getPdo();
+            $driver = $connection->getDriverName();
+            $version = $driver === 'sqlite'
+                ? $connection->selectOne('SELECT sqlite_version() as v')->v
+                : $connection->selectOne('SELECT VERSION() as v')->v;
+            $this->info("✓ {$driver} connected — v{$version}");
         } catch (\Throwable $e) {
-            $this->error("✗ MySQL failed: {$e->getMessage()}");
+            $this->error("✗ SQL connection failed: {$e->getMessage()}");
             $allOk = false;
         }
 
@@ -42,7 +46,7 @@ class CheckConnections extends Command
                 'connectTimeoutMS' => 3000,
                 'serverSelectionTimeoutMS' => 3000,
             ]);
-            $info = $client->selectDatabase('admin')->command(['buildInfo' => 1])->toArray()[0];
+            $info = $client->selectDatabase($db)->command(['buildInfo' => 1])->toArray()[0];
             $version = $info->version ?? 'unknown';
             $this->info("✓ MongoDB connected — v{$version}");
         } catch (\Throwable $e) {

@@ -760,6 +760,44 @@ export default function Home() {
                     </div>
                   </div>
 
+                  <div className="text-left rounded-xl bg-slate-900 border border-slate-800 p-3 max-h-64 overflow-y-auto space-y-3">
+                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Incorrect answers review
+                    </h4>
+                    {examResult.wrong_questions?.length ? (
+                      examResult.wrong_questions.map((wrong: any) => {
+                        const question = activeAttempt.questions?.find(
+                          (q: any) => Number(q.id) === Number(wrong.question_id),
+                        );
+                        const selectedOption = question?.options?.find(
+                          (option: any) => Number(option.id) === Number(wrong.selected_option_id),
+                        );
+                        const correctOption = question?.options?.find(
+                          (option: any) => Number(option.id) === Number(wrong.correct_option_id),
+                        );
+
+                        return (
+                          <div
+                            key={wrong.question_id}
+                            className="border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+                          >
+                            <p className="text-xs font-medium text-slate-200">
+                              {wrong.question_text || `Question #${wrong.question_id}`}
+                            </p>
+                            <p className="text-[11px] text-rose-400 mt-1">
+                              Your answer: {selectedOption?.option_text ?? "Not answered"}
+                            </p>
+                            <p className="text-[11px] text-emerald-400">
+                              Correct answer: {correctOption?.option_text ?? "N/A"}
+                            </p>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-xs text-emerald-400">All answers are correct.</p>
+                    )}
+                  </div>
+
                   <button
                     onClick={() => {
                       setActiveAttempt(null);

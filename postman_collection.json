@@ -2,7 +2,7 @@
   "info": {
     "name": "ExamPlatform API Collection",
     "_postman_id": "c1f7b889-4a92-4c91-9e20-7b58bf2a091e",
-    "description": "Complete Postman collection for ExamPlatform APIs covering Auth, Admin CRUD, Student Execution, Autosave, Analytics, Caching, and IELTS Package/Document Previews.",
+    "description": "Complete Postman collection for ExamPlatform APIs covering registration/login, Admin CRUD, Student execution, autosave, analytics, role-aware exam-list caching, and authenticated document previews with user-bound signed URLs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -34,6 +34,16 @@
     {
       "key": "document_id",
       "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "package_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "preview_url",
+      "value": "",
       "type": "string"
     }
   ],
@@ -116,6 +126,43 @@
           }
         },
         {
+          "name": "Register Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) { pm.collectionVariables.set('student_token', jsonData.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Student\",\n    \"email\": \"student.{{$timestamp}}@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            }
+          }
+        },
+        {
           "name": "Get Authenticated User",
           "request": {
             "method": "GET",
@@ -164,6 +211,18 @@
       "item": [
         {
           "name": "List Exams (Cached)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('cache header present', function () { pm.expect(pm.response.headers.has('X-Cache')).to.be.true; });",
+                  "pm.test('student list does not leak answers', function () { pm.expect(pm.response.text()).to.not.include('is_correct'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -637,6 +696,24 @@
       "item": [
         {
           "name": "List Packages with Units & Documents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data[0]) {",
+                  "    var pkg = jsonData.data[0];",
+                  "    pm.collectionVariables.set('package_id', pkg.id);",
+                  "    if (pkg.units && pkg.units[0] && pkg.units[0].documents && pkg.units[0].documents[0]) {",
+                  "        pm.collectionVariables.set('document_id', pkg.units[0].documents[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -663,17 +740,35 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/packages/1",
+              "raw": "{{base_url}}/packages/{{package_id}}",
               "host": ["{{base_url}}"],
-              "path": ["packages", "1"]
+              "path": ["packages", "{{package_id}}"]
             }
           }
         },
         {
           "name": "Request Time-Boxed Document Preview URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test('preview URL is signed', function () { pm.expect(jsonData.preview_url).to.include('signature='); });",
+                  "pm.test('preview URL is user-bound', function () { pm.expect(jsonData.preview_url).to.include('user='); });",
+                  "if (jsonData.preview_url) { pm.collectionVariables.set('preview_url', jsonData.preview_url); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              },
               {
                 "key": "Accept",
                 "value": "application/json"
@@ -683,6 +778,21 @@
               "raw": "{{base_url}}/documents/{{document_id}}/preview",
               "host": ["{{base_url}}"],
               "path": ["documents", "{{document_id}}", "preview"]
+            }
+          }
+        },
+        {
+          "name": "Stream Signed Preview (No Bearer Token)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{preview_url}}"
             }
           }
         }

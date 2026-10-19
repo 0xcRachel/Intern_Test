@@ -5,7 +5,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="legend" value="ERD / Application data&#10;TestIntern | Source: migrations + models + services | 19/10/2026&#10;Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise.&#10;Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality&#10;PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)" style="text;whiteSpace=wrap;html=0;align=left;verticalAlign=top;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="legend" value="ERD / Application data&#10;TestIntern | Source: migrations + models + services | MySQL 8.0.46 / MongoDB 7.0.45 verified 19/10/2026&#10;Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise. Attempt arrays are native BSON on MongoDB.&#10;Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality&#10;PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)" style="text;whiteSpace=wrap;html=0;align=left;verticalAlign=top;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="40" y="20" width="1240" height="140" />
         </mxCell>
         <mxCell id="e0" value="1 : 0..N  exam_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="exams" target="questions">
@@ -101,7 +101,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="legend" value="ERD / Laravel infrastructure&#10;TestIntern | Source: migrations + models + services | 19/10/2026&#10;Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise.&#10;Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality&#10;PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)" style="text;whiteSpace=wrap;html=0;align=left;verticalAlign=top;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="legend" value="ERD / Laravel infrastructure&#10;TestIntern | Source: migrations + models + services | MySQL 8.0.46 / MongoDB 7.0.45 verified 19/10/2026&#10;Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise. Attempt arrays are native BSON on MongoDB.&#10;Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality&#10;PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)" style="text;whiteSpace=wrap;html=0;align=left;verticalAlign=top;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="40" y="20" width="1240" height="140" />
         </mxCell>
         <mxCell id="e0" value="0..1 : 0..N  user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;dashed=1;" edge="1" parent="1" source="users" target="sessions">

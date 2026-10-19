@@ -24,14 +24,20 @@ class ExamController extends Controller
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 15);
         $page = (int) $request->query('page', 1);
+        $isAdmin = $request->user()?->role === 'admin';
+        $cacheVersion = (int) Cache::get('exams_cache_version', 1);
 
-        $cacheKey = "exams_list_" . md5("{$search}_{$perPage}_{$page}");
+        // Role is part of the key so admin payloads (with questions/answers)
+        // can never be served to students.
+        $cacheKey = "exams_list_v{$cacheVersion}_" . ($isAdmin ? 'admin' : 'student')
+            . "_" . md5("{$search}_{$perPage}_{$page}");
         $isHit = Cache::has($cacheKey);
 
-        $exams = Cache::remember($cacheKey, 60, function () use ($search, $perPage) {
+        $exams = Cache::remember($cacheKey, 60, function () use ($search, $perPage, $isAdmin) {
             return $this->examService->list(
                 search: $search,
                 perPage: $perPage,
+                withQuestions: $isAdmin,
             );
         });
 
@@ -44,7 +50,7 @@ class ExamController extends Controller
 
     public function store(StoreExamRequest $request): JsonResponse
     {
-        Cache::flush();
+        $this->examService->bumpListCacheVersion();
         $exam = $this->examService->create($request->validated());
 
         return (new ExamResource($exam))
@@ -59,7 +65,7 @@ class ExamController extends Controller
 
     public function update(UpdateExamRequest $request, Exam $exam): ExamResource
     {
-        Cache::flush();
+        $this->examService->bumpListCacheVersion();
         $updated = $this->examService->update($exam, $request->validated());
 
         return new ExamResource($updated);
@@ -67,7 +73,7 @@ class ExamController extends Controller
 
     public function destroy(Exam $exam): JsonResponse
     {
-        Cache::flush();
+        $this->examService->bumpListCacheVersion();
         $this->examService->delete($exam);
 
         return response()->json(['message' => 'Exam deleted successfully.'], 200);

@@ -130,6 +130,28 @@ class StudentExamTest extends TestCase
         $this->assertNotNull($attempt->end_time ?? $attempt->submitted_at);
     }
 
+    public function test_completed_attempt_cannot_be_submitted_twice(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $exam = Exam::factory()->create(['duration_minutes' => 60]);
+        $question = Question::factory()->create(['exam_id' => $exam->id, 'points' => 5]);
+        $correct = Option::factory()->create(['question_id' => $question->id, 'is_correct' => true]);
+
+        $attemptId = $this->postJson("/api/exams/{$exam->id}/attempts")
+            ->assertStatus(201)
+            ->json('id');
+
+        $this->postJson("/api/attempts/{$attemptId}/submit", [
+            'answers' => [$question->id => $correct->id],
+        ])->assertStatus(200);
+
+        // A completed attempt is immutable; a second submit must not change the score.
+        $this->postJson("/api/attempts/{$attemptId}/submit", [
+            'answers' => [$question->id => $correct->id],
+        ])->assertStatus(422);
+    }
+
     public function test_submitting_past_time_limit_triggers_rejection(): void
     {
         Sanctum::actingAs($this->student);

@@ -13,90 +13,99 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * The seeder is idempotent so it can also run from the Docker entrypoint
+     * on every container start without creating duplicate rows.
      */
     public function run(): void
     {
         // 1. Admin User
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-        ]);
-
-        // 2. Student User
-        User::create([
-            'name' => 'Student User',
-            'email' => 'student@example.com',
-            'password' => Hash::make('password123'),
-            'role' => 'student',
-        ]);
-
-        // 3. Sample Exam with Questions and Options
-        $exam = Exam::create([
-            'title' => 'IELTS General Reading Test 1',
-            'description' => 'Standard introductory reading comprehension exam.',
-            'duration_minutes' => 60,
-            'passing_score' => 70,
-        ]);
-
-        $q1 = Question::create([
-            'exam_id' => $exam->id,
-            'question_text' => 'What is the primary objective of Section 1 in IELTS Reading?',
-            'type' => 'single_choice',
-            'points' => 10,
-        ]);
-
-        Option::create(['question_id' => $q1->id, 'option_text' => 'Social survival situations', 'is_correct' => true]);
-        Option::create(['question_id' => $q1->id, 'option_text' => 'Academic lecture analysis', 'is_correct' => false]);
-        Option::create(['question_id' => $q1->id, 'option_text' => 'Scientific essay analysis', 'is_correct' => false]);
-        Option::create(['question_id' => $q1->id, 'option_text' => 'Creative fiction evaluation', 'is_correct' => false]);
-
-        $q2 = Question::create([
-            'exam_id' => $exam->id,
-            'question_text' => 'How many total sections are in the IELTS Reading exam?',
-            'type' => 'single_choice',
-            'points' => 10,
-        ]);
-
-        Option::create(['question_id' => $q2->id, 'option_text' => '3', 'is_correct' => true]);
-        Option::create(['question_id' => $q2->id, 'option_text' => '4', 'is_correct' => false]);
-        Option::create(['question_id' => $q2->id, 'option_text' => '5', 'is_correct' => false]);
-        Option::create(['question_id' => $q2->id, 'option_text' => '2', 'is_correct' => false]);
-
-        // 4. Sample IELTS Package with Units & Documents
-        $package = \App\Models\Package::firstOrCreate(
-            ['title' => 'IELTS Comprehensive Band 8.0+ Prep'],
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
             [
-                'description' => 'Master all 4 IELTS modules with authentic Cambridge practice tests, audio tracks, and strategies.',
-                'price' => 49.99,
-                'is_active' => true,
+                'name' => 'Admin User',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
             ]
         );
 
-        $unit1 = \App\Models\Unit::firstOrCreate(
-            ['package_id' => $package->id, 'title' => 'Unit 1: Academic & General Reading Mastery'],
-            ['description' => 'Skimming, scanning, True/False/Not Given, and summary completion mastery.', 'order' => 1]
+        // 2. Student User
+        User::updateOrCreate(
+            ['email' => 'student@example.com'],
+            [
+                'name' => 'Student User',
+                'password' => Hash::make('password123'),
+                'role' => 'student',
+            ]
         );
 
-        \App\Models\Document::firstOrCreate(
-            ['unit_id' => $unit1->id, 'title' => 'Academic Reading Official Handbook.pdf'],
-            ['type' => 'pdf', 'file_path' => 'documents/reading_handbook.pdf', 'total_pages' => 36, 'preview_pages' => 5]
+        // 3. Sample Exam with Questions and Options
+        $exam = Exam::firstOrCreate(
+            ['title' => 'IELTS General Reading Test 1'],
+            [
+                'description' => 'Standard introductory reading comprehension exam.',
+                'duration_minutes' => 60,
+                'passing_score' => 70,
+            ]
         );
 
-        $unit2 = \App\Models\Unit::firstOrCreate(
-            ['package_id' => $package->id, 'title' => 'Unit 2: Listening Section 1-4 Immersion'],
-            ['description' => 'Accents, note-taking, map labeling, and fast-speech comprehension.', 'order' => 2]
+        $q1 = Question::firstOrCreate(
+            [
+                'exam_id' => $exam->id,
+                'question_text' => 'What is the primary objective of Section 1 in IELTS Reading?',
+            ],
+            [
+                'type' => 'single_choice',
+                'points' => 10,
+            ]
         );
 
-        \App\Models\Document::firstOrCreate(
-            ['unit_id' => $unit2->id, 'title' => 'Listening Practice Test 1 - Audio Track.mp3'],
-            ['type' => 'audio', 'file_path' => 'documents/listening_test1.mp3', 'total_pages' => 1, 'preview_pages' => 1]
+        Option::updateOrCreate(
+            ['question_id' => $q1->id, 'option_text' => 'Social survival situations'],
+            ['is_correct' => true]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q1->id, 'option_text' => 'Academic lecture analysis'],
+            ['is_correct' => false]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q1->id, 'option_text' => 'Scientific essay analysis'],
+            ['is_correct' => false]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q1->id, 'option_text' => 'Creative fiction evaluation'],
+            ['is_correct' => false]
         );
 
-        \App\Models\Document::firstOrCreate(
-            ['unit_id' => $unit2->id, 'title' => 'Listening Transcripts & Answer Keys.pdf'],
-            ['type' => 'pdf', 'file_path' => 'documents/transcripts.pdf', 'total_pages' => 18, 'preview_pages' => 3]
+        $q2 = Question::firstOrCreate(
+            [
+                'exam_id' => $exam->id,
+                'question_text' => 'How many total sections are in the IELTS Reading exam?',
+            ],
+            [
+                'type' => 'single_choice',
+                'points' => 10,
+            ]
         );
+
+        Option::updateOrCreate(
+            ['question_id' => $q2->id, 'option_text' => '3'],
+            ['is_correct' => true]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q2->id, 'option_text' => '4'],
+            ['is_correct' => false]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q2->id, 'option_text' => '5'],
+            ['is_correct' => false]
+        );
+        Option::updateOrCreate(
+            ['question_id' => $q2->id, 'option_text' => '2'],
+            ['is_correct' => false]
+        );
+
+        // 4. Sample IELTS Package with Units & Documents
+        $this->call(IeltsPackageSeeder::class);
     }
 }

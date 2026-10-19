@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-if (extension_loaded('mongodb')) {
+if (extension_loaded('mongodb') && config('database.mongodb_enabled', true)) {
     class BasePreviewLog extends \MongoDB\Laravel\Eloquent\Model {}
 } else {
     class BasePreviewLog extends \Illuminate\Database\Eloquent\Model {}
@@ -16,7 +16,7 @@ class PreviewLog extends BasePreviewLog
 
     public function getConnectionName()
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             return config('database.default');
         }
 
@@ -25,7 +25,7 @@ class PreviewLog extends BasePreviewLog
 
     public function __construct(array $attributes = [])
     {
-        if (! extension_loaded('mongodb')) {
+        if (! extension_loaded('mongodb') || ! config('database.mongodb_enabled', true)) {
             $this->connection = config('database.default');
         }
         parent::__construct($attributes);

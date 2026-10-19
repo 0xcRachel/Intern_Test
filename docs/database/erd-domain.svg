@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1990" viewBox="0 0 1320 1990">
 <rect width="100%" height="100%" fill="#f8fafc"/>
 <text x="40" y="48" font-family="Segoe UI,Arial,sans-serif" font-size="28" fill="#0f172a">ERD / Application data</text>
-<text x="40" y="78" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">TestIntern | Source: migrations + models + services | 19/10/2026</text>
-<text x="40" y="100" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise.</text>
+<text x="40" y="78" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">TestIntern | Source: migrations + models + services | MySQL 8.0.46 / MongoDB 7.0.45 verified 19/10/2026</text>
+<text x="40" y="100" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise. Attempt arrays are native BSON on MongoDB.</text>
 <text x="40" y="122" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality</text>
 <text x="40" y="144" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)</text>
 <polyline points="380,260 480,260" fill="none" stroke="#64748b" stroke-width="1.7"/>

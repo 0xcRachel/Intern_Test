@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->api(prepend: [
+            \App\Http\Middleware\ForceJsonResponse::class,
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'student' => \App\Http\Middleware\IsStudent::class,

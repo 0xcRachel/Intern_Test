@@ -21,6 +21,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MongoDB Feature Toggle
+    |--------------------------------------------------------------------------
+    |
+    | Tests run against SQLite in memory. Even when the mongodb extension is
+    | installed (for example inside the Docker PHP image), set MONGO_ENABLED
+    | to false so the Eloquent test suite stays isolated and repeatable.
+    |
+    */
+
+    'mongodb_enabled' => env('MONGO_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
     |

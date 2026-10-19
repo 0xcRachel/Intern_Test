@@ -7,17 +7,29 @@ use App\Models\Exam;
 use App\Models\Question;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 
 class ExamService
 {
-    public function list(?string $search = null, int $perPage = 15): LengthAwarePaginator
+    public function list(?string $search = null, int $perPage = 15, bool $withQuestions = false): LengthAwarePaginator
     {
         return Exam::query()
-            ->with('questions.options')
+            ->withCount('questions')
+            ->when($withQuestions, fn ($query) => $query->with('questions.options'))
             ->when($search, fn ($q) => $q->where('title', 'like', "%{$search}%"))
             ->latest()
             ->paginate($perPage);
+    }
+
+    /**
+     * Invalidate cached exam lists without flushing unrelated cache entries.
+     * Question/option mutations also call this because the admin list embeds
+     * questions and counts.
+     */
+    public function bumpListCacheVersion(): void
+    {
+        Cache::forever('exams_cache_version', (int) Cache::get('exams_cache_version', 1) + 1);
     }
 
     public function create(array $data): Exam
