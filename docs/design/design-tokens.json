@@ -1,0 +1,26 @@
+{
+  "name": "ExamPlatform",
+  "stage": "design-specification",
+  "colors": {
+    "canvas": "#FAFAF7",
+    "surface": "#FFFFFF",
+    "textPrimary": "#20251F",
+    "textSecondary": "#62685F",
+    "borderDecorative": "#E1E5DC",
+    "accent": "#3D6254",
+    "accentSubtle": "#EDF2EC",
+    "buttonPrimary": "#20251F",
+    "buttonPrimaryText": "#FFFFFF"
+  },
+  "font": { "family": "Geist", "weights": [400, 500, 600] },
+  "typography": {
+    "pageTitle": { "size": 40, "lineHeight": 48 },
+    "sectionTitle": { "size": 24, "lineHeight": 32 },
+    "body": { "size": 16, "lineHeight": 24 },
+    "label": { "size": 14, "lineHeight": 20 }
+  },
+  "spacing": [4, 8, 12, 16, 24, 32, 48, 64],
+  "radius": { "control": 6, "panel": 8 },
+  "layout": { "desktopWidth": 1440, "desktopHeight": 1024, "contentMaxWidth": 1216, "headerHeight": 76, "mobileWidth": 390, "mobileHeight": 844, "mobileGutter": 20, "minimumTarget": 44 },
+  "motion": { "feedbackMs": [120, 180], "easing": "cubic-bezier(0.2, 0, 0, 1)", "reducedMotion": "static" }
+}

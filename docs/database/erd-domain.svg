@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1990" viewBox="0 0 1320 1990">
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="40" y="48" font-family="Segoe UI,Arial,sans-serif" font-size="28" fill="#0f172a">ERD / Application data</text>
+<text x="40" y="78" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">TestIntern | Source: migrations + models + services | 19/10/2026</text>
+<text x="40" y="100" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">Blue: SQL | Amber: MongoDB when extension is loaded; SQL fallback otherwise.</text>
+<text x="40" y="122" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">Solid: SQL FK (CASCADE DELETE) | Dashed: logical reference | Labels: parent : child cardinality</text>
+<text x="40" y="144" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#334155">PK primary key | FK SQL foreign key | REF logical reference | UQ unique | ? nullable (SQL schema)</text>
+<polyline points="380,260 480,260" fill="none" stroke="#64748b" stroke-width="1.7"/>
+<text x="385" y="253" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="485" y="253" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="820,260 920,260" fill="none" stroke="#64748b" stroke-width="1.7"/>
+<text x="825" y="253" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="925" y="253" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="380,650 480,650" fill="none" stroke="#64748b" stroke-width="1.7" stroke-dasharray="7 5"/>
+<text x="385" y="643" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="485" y="643" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="350,400 350,430 510,430 510,570" fill="none" stroke="#64748b" stroke-width="1.7" stroke-dasharray="7 5"/>
+<text x="355" y="393" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="515" y="563" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="210,570 210,510 1090,510 1090,570" fill="none" stroke="#64748b" stroke-width="1.7" stroke-dasharray="7 5"/>
+<text x="215" y="563" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..1</text>
+<text x="1095" y="563" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="380,1270 480,1270" fill="none" stroke="#64748b" stroke-width="1.7"/>
+<text x="385" y="1263" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="485" y="1263" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="820,1270 920,1270" fill="none" stroke="#64748b" stroke-width="1.7"/>
+<text x="825" y="1263" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="925" y="1263" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="1090,1454 1090,1580" fill="none" stroke="#64748b" stroke-width="1.7" stroke-dasharray="7 5"/>
+<text x="1095" y="1447" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">1</text>
+<text x="1095" y="1573" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<polyline points="210,834 210,1130 880,1130 880,1670 920,1670" fill="none" stroke="#64748b" stroke-width="1.7" stroke-dasharray="7 5"/>
+<text x="215" y="827" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..1</text>
+<text x="925" y="1663" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">0..N</text>
+<rect x="40" y="180" width="340" height="220" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="54" y="206" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">exams</text>
+<text x="54" y="227" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="54" y="252" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="54" y="274" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">title  :  varchar</text>
+<text x="54" y="296" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">description  :  text  [?]</text>
+<text x="54" y="318" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">duration_minutes  :  int</text>
+<text x="54" y="340" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">passing_score  :  int</text>
+<text x="54" y="362" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="54" y="384" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="480" y="180" width="340" height="220" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="494" y="206" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">questions</text>
+<text x="494" y="227" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="494" y="252" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="494" y="274" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">exam_id  :  bigint  [FK]</text>
+<text x="494" y="296" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">question_text  :  text</text>
+<text x="494" y="318" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">type  :  enum</text>
+<text x="494" y="340" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">points  :  int</text>
+<text x="494" y="362" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="494" y="384" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="920" y="180" width="340" height="198" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="934" y="206" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">options</text>
+<text x="934" y="227" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="934" y="252" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="934" y="274" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">question_id  :  bigint  [FK]</text>
+<text x="934" y="296" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">option_text  :  text</text>
+<text x="934" y="318" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">is_correct  :  boolean</text>
+<text x="934" y="340" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="934" y="362" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="40" y="570" width="340" height="264" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="54" y="596" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">users</text>
+<text x="54" y="617" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="54" y="642" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="54" y="664" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">name  :  varchar</text>
+<text x="54" y="686" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">email  :  varchar  [UQ]</text>
+<text x="54" y="708" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">role  :  enum</text>
+<text x="54" y="730" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">email_verified_at  :  timestamp  [?]</text>
+<text x="54" y="752" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">password  :  varchar</text>
+<text x="54" y="774" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">remember_token  :  varchar(100)  [?]</text>
+<text x="54" y="796" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="54" y="818" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="480" y="570" width="340" height="462" rx="9" fill="white" stroke="#b45309"/>
+<text x="494" y="596" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#b45309">attempts</text>
+<text x="494" y="617" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#b45309">MongoDB / SQL fallback</text>
+<text x="494" y="642" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]</text>
+<text x="494" y="664" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_id  :  bigint  [REF / FK*]</text>
+<text x="494" y="686" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">exam_id  :  bigint  [REF / FK*]</text>
+<text x="494" y="708" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">questions  :  json  [?]</text>
+<text x="494" y="730" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">submitted_answers  :  json  [?]</text>
+<text x="494" y="752" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">answers  :  json  [?]</text>
+<text x="494" y="774" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">wrong_questions  :  json  [?]</text>
+<text x="494" y="796" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">score  :  float</text>
+<text x="494" y="818" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">total_points  :  float</text>
+<text x="494" y="840" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">percentage  :  float</text>
+<text x="494" y="862" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">is_passed  :  boolean</text>
+<text x="494" y="884" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">status  :  varchar</text>
+<text x="494" y="906" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">start_time  :  timestamp  [?]</text>
+<text x="494" y="928" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">end_time  :  timestamp  [?]</text>
+<text x="494" y="950" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">started_at  :  timestamp  [?]</text>
+<text x="494" y="972" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">submitted_at  :  timestamp  [?]</text>
+<text x="494" y="994" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="494" y="1016" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="920" y="570" width="340" height="308" rx="9" fill="white" stroke="#b45309"/>
+<text x="934" y="596" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#b45309">activity_logs</text>
+<text x="934" y="617" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#b45309">MongoDB / SQL fallback</text>
+<text x="934" y="642" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]</text>
+<text x="934" y="664" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_id  :  bigint  [REF  ?]</text>
+<text x="934" y="686" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_name  :  varchar  [?]</text>
+<text x="934" y="708" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">action  :  varchar</text>
+<text x="934" y="730" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">description  :  text  [?]</text>
+<text x="934" y="752" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">metadata  :  json  [?]</text>
+<text x="934" y="774" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">properties  :  json  [?]</text>
+<text x="934" y="796" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">ip_address  :  varchar  [?]</text>
+<text x="934" y="818" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_agent  :  varchar  [?]</text>
+<text x="934" y="840" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="934" y="862" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="40" y="1190" width="340" height="220" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="54" y="1216" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">packages</text>
+<text x="54" y="1237" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="54" y="1262" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="54" y="1284" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">title  :  varchar</text>
+<text x="54" y="1306" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">description  :  text  [?]</text>
+<text x="54" y="1328" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">price  :  decimal(10,2)</text>
+<text x="54" y="1350" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">is_active  :  boolean</text>
+<text x="54" y="1372" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="54" y="1394" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="480" y="1190" width="340" height="220" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="494" y="1216" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">units</text>
+<text x="494" y="1237" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="494" y="1262" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="494" y="1284" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">package_id  :  bigint  [FK]</text>
+<text x="494" y="1306" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">title  :  varchar</text>
+<text x="494" y="1328" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">description  :  text  [?]</text>
+<text x="494" y="1350" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">order  :  int</text>
+<text x="494" y="1372" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="494" y="1394" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="920" y="1190" width="340" height="264" rx="9" fill="white" stroke="#1d4ed8"/>
+<text x="934" y="1216" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">documents</text>
+<text x="934" y="1237" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
+<text x="934" y="1262" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
+<text x="934" y="1284" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">unit_id  :  bigint  [FK]</text>
+<text x="934" y="1306" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">title  :  varchar</text>
+<text x="934" y="1328" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">type  :  enum</text>
+<text x="934" y="1350" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">file_path  :  varchar  [?]</text>
+<text x="934" y="1372" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">total_pages  :  int</text>
+<text x="934" y="1394" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">preview_pages  :  int</text>
+<text x="934" y="1416" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="934" y="1438" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<rect x="920" y="1580" width="340" height="264" rx="9" fill="white" stroke="#b45309"/>
+<text x="934" y="1606" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#b45309">preview_logs</text>
+<text x="934" y="1627" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#b45309">MongoDB / SQL fallback</text>
+<text x="934" y="1652" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]</text>
+<text x="934" y="1674" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_id  :  bigint  [REF  ?]</text>
+<text x="934" y="1696" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">document_id  :  bigint  [REF]</text>
+<text x="934" y="1718" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">ip_address  :  varchar  [?]</text>
+<text x="934" y="1740" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">user_agent  :  varchar  [?]</text>
+<text x="934" y="1762" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">expires_at  :  timestamp  [?]</text>
+<text x="934" y="1784" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">accessed_at  :  timestamp  [?]</text>
+<text x="934" y="1806" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
+<text x="934" y="1828" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<text x="40" y="1958" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">* attempts.user_id / exam_id: enforced FK only in SQL fallback. MongoDB references have no SQL FK.</text>
+</svg>
