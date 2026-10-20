@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // BrowserMCP binds a fixed WebSocket port (9009). Keep it project-scoped so
+  // only one config location starts it; a global entry races with the home
+  // location and one instance fails to bind.
+  "mcp": {
+    "servers": {
+      "browsermcp": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@browsermcp/mcp"
+        ],
+        "timeout": {
+          "startup": 60000,
+          "catalog": 60000
+        }
+      }
+    }
+  }
+}

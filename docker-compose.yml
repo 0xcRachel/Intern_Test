@@ -10,6 +10,31 @@ services:
     depends_on:
       php:
         condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - exam_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: exam_frontend
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      VITE_API_BASE_URL: /api
+    expose:
+      - "3000"
+    depends_on:
+      php:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     networks:
       - exam_network
 
@@ -20,6 +45,13 @@ services:
     container_name: exam_php
     environment:
       APP_URL: http://localhost:8080
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/api/auth/google/callback}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://localhost:8080/api/auth/github/callback}
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
@@ -33,6 +65,14 @@ services:
       MONGO_USERNAME: mongo_user
       MONGO_PASSWORD: mongo_pass
       RUN_SEED: "true"
+      # Keep Laravel's optimization caches inside the container. The project
+      # directory is bind-mounted, so writing config/route caches there would
+      # leak Docker environment values into host-side test runs.
+      APP_CONFIG_CACHE: /tmp/laravel/config.php
+      APP_ROUTES_CACHE: /tmp/laravel/routes-v7.php
+      APP_EVENTS_CACHE: /tmp/laravel/events.php
+      APP_PACKAGES_CACHE: /tmp/laravel/packages.php
+      APP_SERVICES_CACHE: /tmp/laravel/services.php
     volumes:
       - .:/var/www/html
     depends_on:

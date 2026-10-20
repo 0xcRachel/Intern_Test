@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\NativeArray;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 if (extension_loaded('mongodb') && config('database.mongodb_enabled', true)) {
     class BaseAttempt extends \MongoDB\Laravel\Eloquent\Model {}
@@ -12,6 +13,8 @@ if (extension_loaded('mongodb') && config('database.mongodb_enabled', true)) {
 
 class Attempt extends BaseAttempt
 {
+    use HasFactory;
+
     protected $connection = 'mongodb';
     protected $collection = 'attempts';
     protected $table = 'attempts';

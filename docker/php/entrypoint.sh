@@ -23,8 +23,13 @@ if [ -z "${APP_KEY}" ] && ! grep -Eq '^APP_KEY=.+' .env 2>/dev/null; then
     php artisan key:generate --force --no-interaction
 fi
 
+mkdir -p /tmp/laravel
 php artisan config:clear >/dev/null 2>&1 || true
 php artisan migrate --force --no-interaction
+
+# Cache routes/config/views once per container start. This removes repeated
+# bootstrap work from the first request and keeps API navigation snappy.
+php artisan optimize --no-interaction >/dev/null 2>&1 || true
 
 if [ "${RUN_SEED:-true}" = "true" ]; then
     php artisan db:seed --force --no-interaction

@@ -23,9 +23,11 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin User',
+                'name' => 'Quản trị viên ExamPlatform',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
+                'target_band' => '8.5',
+                'bio' => 'Quản trị nội dung và theo dõi hoạt động của trung tâm.',
             ]
         );
 
@@ -33,9 +35,11 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'student@example.com'],
             [
-                'name' => 'Student User',
+                'name' => 'Ngọc Anh',
                 'password' => Hash::make('password123'),
                 'role' => 'student',
+                'target_band' => '7.5',
+                'bio' => 'Đang luyện IELTS Academic, mục tiêu Band 7.5 trong 8 tuần.',
             ]
         );
 
@@ -107,5 +111,11 @@ class DatabaseSeeder extends Seeder
 
         // 4. Sample IELTS Package with Units & Documents
         $this->call(IeltsPackageSeeder::class);
+
+        // 5. Factory-generated demo packages and exams (idempotent by title)
+        $this->call(DemoContentSeeder::class);
+
+        // 6. Storefront demo: coupons, a paid order and course enrollments
+        $this->call(CommerceDemoSeeder::class);
     }
 }

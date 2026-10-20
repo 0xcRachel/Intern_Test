@@ -8,7 +8,7 @@ Yêu cầu thiết kế: tiếp tục từ dự án hiện tại, sử dụng c�
 
 Mục tiêu bàn giao là bộ màn hình desktop rộng 1440 px và mobile rộng 390 px, đủ rõ để chuyển thành component React và luồng hoạt động thực tế. Các số liệu trong mockup là **dữ liệu minh họa**, không phải số liệu lấy từ hệ thống đang chạy. Khi dùng nội dung seed, cần giữ đúng số lượng và quan hệ của seed; không trình bày số liệu minh họa như thành tích thật của người dùng.
 
-[File Figma](https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/) được giữ làm tham chiếu, nhưng nội dung các frame không thể xác minh từ repository này. Các màn hình dưới đây là đề xuất đã đối chiếu API, không phải ảnh chụp Figma đã kiểm tra. Xem design-brief.md để biết phạm vi và giới hạn.
+[File Figma](https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/) đã được mở và kiểm tra qua trình duyệt ngày 20/10/2026. Có 8 frame gốc, hiện đang cập nhật palette và thêm landing page. Các mapping API dưới đây vẫn là đặc tả bàn giao; không đồng nghĩa giao diện mới đã được triển khai trong React. Xem revision-2026-10-20.md cho trạng thái kiểm tra mới nhất.
 
 Tài liệu này mô tả hồ sơ thiết kế; các thay đổi backend gần nhất được triển khai trong repository và kiểm thử bằng bộ test hiện có.
 

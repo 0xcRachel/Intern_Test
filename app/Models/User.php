@@ -19,6 +19,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'avatar',
+        'provider',
+        'provider_id',
+        'target_band',
+        'bio',
     ];
 
     protected $hidden = [
@@ -37,5 +42,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
     }
 }

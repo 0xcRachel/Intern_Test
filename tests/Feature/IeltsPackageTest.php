@@ -12,7 +12,7 @@ class IeltsPackageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_can_list_active_packages_with_eager_loaded_units_and_documents(): void
+    public function test_can_list_active_packages_with_summary_counts(): void
     {
         $package = Package::factory()->create(['title' => 'IELTS Academic Masterclass', 'is_active' => true]);
         $unit = Unit::factory()->create(['package_id' => $package->id, 'title' => 'Unit 1: Listening Fundamentals']);
@@ -27,8 +27,11 @@ class IeltsPackageTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('total', 1)
             ->assertJsonPath('data.0.title', 'IELTS Academic Masterclass')
-            ->assertJsonCount(1, 'data.0.units')
-            ->assertJsonCount(2, 'data.0.units.0.documents');
+            ->assertJsonPath('data.0.units_count', 1)
+            ->assertJsonPath('data.0.documents_count', 2)
+            ->assertJsonPath('data.0.pdf_count', 1)
+            ->assertJsonPath('data.0.audio_count', 1)
+            ->assertJsonMissingPath('data.0.units');
     }
 
     public function test_can_view_single_package_details(): void

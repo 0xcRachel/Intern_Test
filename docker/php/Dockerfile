@@ -37,6 +37,7 @@ RUN composer install --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/php/performance.ini /usr/local/etc/php/conf.d/zz-performance.ini
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000

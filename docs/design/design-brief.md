@@ -1,8 +1,8 @@
 # ExamPlatform — Figma design brief
 
-Ngày: 19/10/2026. Trạng thái: đề xuất thiết kế đã đối chiếu API; nội dung frame Figma chưa được xác minh từ repository này.
+Ngày tạo brief: 19/10/2026. Cập nhật 20/10/2026: đã mở và kiểm tra file trên Figma web; đang áp dụng palette mới và bổ sung landing page. Xem [revision-2026-10-20.md](revision-2026-10-20.md) cho yêu cầu hiện hành. Các màu sage bên dưới là hướng ban đầu, đã được thay bằng bảng màu người dùng cung cấp trong design-tokens.json.
 
-File tham chiếu (chưa xác minh): https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/
+File Figma: https://www.figma.com/design/G1Qyagu7kovztnyGI3zZwU/
 
 ## Mục tiêu
 
@@ -56,6 +56,6 @@ Không gian học tập sáng, gọn, dễ đọc. Phân cấp bằng typography
 - Preview backend trả metadata JSON, chưa stream PDF/audio. Endpoint tạo preview yêu cầu đăng nhập; signed URL 15 phút gắn với user và được kiểm tra lại khi stream. Giao diện viewer đầy đủ là hạng mục cần backend bổ sung; không mô tả là đã hoạt động.
 - Các phép kiểm định với người dùng thật chưa được thực hiện. Rà soát hiện tại là đối chiếu mã nguồn, kiểm tra thị giác và heuristic.
 
-## Quy trình Figma (đề xuất, chưa xác minh)
+## Quy trình Figma
 
-Nếu tiếp tục dựng frame, dùng brief này với công cụ tạo design của Figma, sau đó kiểm tra canvas/layers và chỉnh sửa các sai lệch. Trong phạm vi repository này không có ảnh chụp, export hoặc bằng chứng kiểm tra frame; không tuyên bố các màn hình đã hoàn tất trên Figma. Không thay đổi quyền chia sẻ và không sửa giao diện production trong bước này.
+Đã kiểm tra qua trình duyệt ngày 20/10/2026: file có sáu màn desktop, màn làm bài mobile và board Components. Frame làm bài có native layers, Auto Layout, kích thước 1440 × 1024 và fill #F8F6F0 sau cập nhật. Tình trạng bổ sung landing, ảnh và bằng chứng kiểm tra được ghi riêng trong revision-2026-10-20.md. Không thay đổi quyền chia sẻ và không sửa giao diện production trong bước thiết kế này.

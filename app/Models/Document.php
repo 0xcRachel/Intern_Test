@@ -17,11 +17,18 @@ class Document extends Model
         'file_path',
         'total_pages',
         'preview_pages',
+        'preview_content',
     ];
 
     protected $casts = [
         'total_pages' => 'integer',
         'preview_pages' => 'integer',
+        'preview_content' => 'array',
+    ];
+
+    protected $hidden = [
+        'file_path',
+        'preview_content',
     ];
 
     public function unit(): BelongsTo

@@ -1,10 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExamController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PreviewStatisticsController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\Student\AttemptController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +19,15 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:6,1');
 Route::post('/login', [AuthController::class, 'login']);
+
+// OAuth (Google / GitHub). Callback URLs live under /api so Nginx can route
+// them to PHP, while the browser is returned to the React app afterwards.
+Route::get('/auth/providers', [SocialAuthController::class, 'providers']);
+Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+    ->middleware('throttle:20,1');
+Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback']);
+Route::post('/auth/oauth/exchange', [SocialAuthController::class, 'exchange'])
+    ->middleware('throttle:20,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -25,13 +40,26 @@ Route::middleware('auth:sanctum')->group(function () {
     // Document Preview signer (rate-limited, signed URL is user-bound)
     Route::post('/documents/{id}/preview', [DocumentController::class, 'preview'])
         ->middleware('throttle:10,1');
+
+    // Learner profile and storefront
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::get('/my/courses', [CheckoutController::class, 'myCourses']);
+    Route::get('/orders', [CheckoutController::class, 'index']);
+    Route::get('/orders/{order}', [CheckoutController::class, 'show']);
+    Route::post('/checkout/quote', [CheckoutController::class, 'quote'])
+        ->middleware('throttle:30,1');
+    Route::post('/checkout', [CheckoutController::class, 'store'])
+        ->middleware('throttle:12,1');
 });
 
 // Admin Routes
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return response()->json(['message' => 'Welcome Admin']);
-    });
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    Route::get('orders', [OrderController::class, 'index']);
+    Route::get('orders/{order}', [OrderController::class, 'show']);
+
+    Route::get('preview-statistics', [PreviewStatisticsController::class, 'index']);
 
     Route::apiResource('exams', ExamController::class);
     Route::get('exams/{id}/statistics', [ExamController::class, 'statistics']);

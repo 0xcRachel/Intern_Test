@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\Enrollment;
 use App\Models\PreviewLog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -26,12 +27,41 @@ class DocumentController extends Controller
             ['document' => $document->id, 'user' => $request->user()->id]
         );
 
+        $previewPages = collect($document->preview_content ?? [])
+            ->take($document->preview_pages)
+            ->values()
+            ->all();
+
+        $owned = Enrollment::query()
+            ->where('user_id', $request->user()->id)
+            ->whereHas('package.units.documents', fn ($query) => $query->where('documents.id', $document->id))
+            ->exists();
+
+        if ($owned) {
+            $previewPages = collect($document->preview_content ?? [])->values()->all();
+        }
+
+        // The React reader consumes preview_content directly, so record the
+        // view here as well. The signed stream route keeps logging for embed
+        // and backward-compatible consumers.
+        PreviewLog::create([
+            'user_id' => $request->user()->id,
+            'document_id' => $document->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'expires_at' => $expiresAt,
+            'accessed_at' => Carbon::now(),
+        ]);
+
         return response()->json([
             'document_id' => $document->id,
             'title' => $document->title,
             'type' => $document->type,
             'total_pages' => $document->total_pages,
-            'preview_pages' => $document->preview_pages,
+            'preview_pages' => $owned ? count($previewPages) : $document->preview_pages,
+            'preview_content' => $previewPages,
+            'locked_pages' => $owned ? 0 : max(0, $document->total_pages - count($previewPages)),
+            'owned' => $owned,
             'preview_url' => $signedUrl,
             'expires_at' => $expiresAt->toIso8601String(),
         ]);

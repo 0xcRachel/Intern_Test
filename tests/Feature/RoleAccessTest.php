@@ -42,8 +42,19 @@ class RoleAccessTest extends TestCase
         $response = $this->getJson('/api/admin/dashboard');
 
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Welcome Admin',
+            ->assertJsonStructure([
+                'message',
+                'metrics' => [
+                    'students',
+                    'packages',
+                    'exams',
+                    'questions',
+                    'enrollments',
+                    'paid_orders',
+                    'revenue',
+                ],
+                'recent_orders',
+                'recent_enrollments',
             ]);
     }
 }

@@ -1,16 +1,20 @@
 {
   "name": "ExamPlatform",
-  "stage": "design-specification",
+  "stage": "figma-revision-2026-10-20",
   "colors": {
-    "canvas": "#FAFAF7",
-    "surface": "#FFFFFF",
-    "textPrimary": "#20251F",
-    "textSecondary": "#62685F",
-    "borderDecorative": "#E1E5DC",
-    "accent": "#3D6254",
-    "accentSubtle": "#EDF2EC",
-    "buttonPrimary": "#20251F",
-    "buttonPrimaryText": "#FFFFFF"
+    "canvas": "#F8F6F0",
+    "surface": "#F8F6F0",
+    "surfaceRaised": "#FDFCF8",
+    "surfaceSunken": "#F1EDE3",
+    "textPrimary": "#14232C",
+    "textSecondary": "#14232C",
+    "borderDecorative": "#9BC4D8",
+    "accent": "#5D8EA6",
+    "accentSubtle": "#D7EAF3",
+    "selectedSurface": "#9BC4D8",
+    "warmNote": "#E6D3B3",
+    "buttonPrimary": "#9BC4D8",
+    "buttonPrimaryText": "#14232C"
   },
   "font": { "family": "Geist", "weights": [400, 500, 600] },
   "typography": {

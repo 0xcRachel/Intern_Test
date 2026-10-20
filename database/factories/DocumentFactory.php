@@ -13,13 +13,23 @@ class DocumentFactory extends Factory
 
     public function definition(): array
     {
+        $type = fake()->randomElement(['pdf', 'audio']);
+
         return [
             'unit_id' => Unit::factory(),
             'title' => fake()->words(2, true) . ' Material',
-            'type' => fake()->randomElement(['pdf', 'audio']),
+            'type' => $type,
             'file_path' => 'documents/' . fake()->uuid() . '.pdf',
             'total_pages' => 20,
             'preview_pages' => 3,
+            'preview_content' => collect(range(1, 3))
+                ->map(fn (int $page) => [
+                    'heading' => $type === 'audio'
+                        ? "Transcript preview · Part {$page}"
+                        : "Preview page {$page}",
+                    'body' => fake()->paragraphs(3, true),
+                ])
+                ->all(),
         ];
     }
 }
