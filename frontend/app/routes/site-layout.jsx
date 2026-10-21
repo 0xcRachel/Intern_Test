@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from "react-router";
 import { SiteHeader, PublicFooter } from "../components/site-header";
+import { ContactChat } from "../components/contact-chat";
 import { useRouteMotion } from "../context/route-motion";
 
 const fullBleedPaths = ["/", "/packages"];
@@ -43,6 +44,7 @@ export default function SiteLayout() {
       </main>
 
       <PublicFooter />
+      <ContactChat />
     </div>
   );
 }

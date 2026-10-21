@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
+import { usePolling } from "../lib/use-polling";
 
 const STORAGE_KEY = "examplatform.auth";
 const AuthContext = createContext(null);
@@ -35,10 +36,11 @@ export function AuthProvider({ children }) {
     if (stored.token) {
       api("/user", { token: stored.token })
         .then((freshUser) => {
-          setUser(freshUser);
+          const nextUser = freshUser?.user || freshUser;
+          setUser(nextUser);
           window.localStorage.setItem(
             STORAGE_KEY,
-            JSON.stringify({ token: stored.token, user: freshUser }),
+            JSON.stringify({ token: stored.token, user: nextUser }),
           );
         })
         .catch(() => {
@@ -48,6 +50,25 @@ export function AuthProvider({ children }) {
         });
     }
   }, []);
+
+  usePolling(
+    async () => {
+      if (!token) return;
+      try {
+        const freshUser = await api("/user", { token });
+        const nextUser = freshUser?.user || freshUser;
+        setUser(nextUser);
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ token, user: nextUser }),
+        );
+      } catch {
+        // The next poll can recover from a temporary network interruption.
+      }
+    },
+    60000,
+    Boolean(token && ready),
+  );
 
   function persist(nextToken, nextUser) {
     setToken(nextToken);

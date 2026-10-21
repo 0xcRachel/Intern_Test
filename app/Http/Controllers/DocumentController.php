@@ -8,7 +8,9 @@ use App\Models\PreviewLog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Symfony\Component\HttpFoundation\Response;
 
 class DocumentController extends Controller
 {
@@ -19,23 +21,25 @@ class DocumentController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        // 15-minute time-boxed signed URL, bound to the requesting user
+        $owned = Enrollment::query()
+            ->where('user_id', $request->user()->id)
+            ->whereHas('package.units.documents', fn ($query) => $query->where('documents.id', $document->id))
+            ->exists();
+
+        // Only paying users receive a stream URL. The source file is kept
+        // private; guests and non-owners receive the bounded preview content
+        // below and can never use the stream endpoint to download the file.
         $expiresAt = Carbon::now()->addMinutes(15);
-        $signedUrl = URL::temporarySignedRoute(
+        $signedUrl = $owned ? URL::temporarySignedRoute(
             'documents.stream',
             $expiresAt,
             ['document' => $document->id, 'user' => $request->user()->id]
-        );
+        ) : null;
 
         $previewPages = collect($document->preview_content ?? [])
             ->take($document->preview_pages)
             ->values()
             ->all();
-
-        $owned = Enrollment::query()
-            ->where('user_id', $request->user()->id)
-            ->whereHas('package.units.documents', fn ($query) => $query->where('documents.id', $document->id))
-            ->exists();
 
         if ($owned) {
             $previewPages = collect($document->preview_content ?? [])->values()->all();
@@ -70,7 +74,7 @@ class DocumentController extends Controller
     /**
      * Stream / view document preview with signature validation and MongoDB logging
      */
-    public function stream(Request $request, int $document): JsonResponse
+    public function stream(Request $request, int $document): Response|JsonResponse
     {
         if (! $request->hasValidSignature()) {
             abort(403, 'Invalid or expired preview URL signature.');
@@ -93,27 +97,31 @@ class DocumentController extends Controller
 
         $doc = Document::findOrFail($document);
 
-        // Log to MongoDB PreviewLog
-        $expires = $request->query('expires');
+        $owned = Enrollment::query()
+            ->where('user_id', (int) $userId)
+            ->whereHas('package.units.documents', fn ($query) => $query->whereKey($doc->id))
+            ->exists();
+
+        abort_unless($owned, 403, 'Tài liệu này chưa được mở khóa cho tài khoản.');
+
         PreviewLog::create([
             'user_id' => (int) $userId,
             'document_id' => $doc->id,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'expires_at' => $expires ? Carbon::createFromTimestamp((int) $expires) : null,
+            'expires_at' => Carbon::createFromTimestamp((int) $request->query('expires')),
             'accessed_at' => Carbon::now(),
         ]);
 
-        return response()->json([
-            'status' => 'authorized',
-            'document' => [
-                'id' => $doc->id,
-                'title' => $doc->title,
-                'type' => $doc->type,
-                'total_pages' => $doc->total_pages,
-                'preview_pages' => $doc->preview_pages,
-            ],
-            'message' => "Preview access granted for {$doc->type} document.",
+        $disk = Storage::disk('local');
+        abort_unless($disk->exists($doc->file_path), 404, 'Preview file is unavailable.');
+        $mime = $doc->type === 'audio' ? 'audio/mpeg' : 'application/pdf';
+
+        return response($disk->get($doc->file_path), 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="'.addslashes($doc->title).'"',
+            'Cache-Control' => 'private, no-store',
+            'X-Preview-Pages' => (string) $doc->preview_pages,
         ]);
     }
 }

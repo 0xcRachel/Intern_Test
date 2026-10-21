@@ -9,6 +9,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
+import { usePolling } from "../../lib/use-polling";
 import { useAuth } from "../../context/auth";
 import { Pagination } from "../../components/pagination";
 import {
@@ -45,8 +46,8 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function load(query = search, filter = status, page = 1) {
-    setLoading(true);
+  async function load(query = search, filter = status, page = 1, { silent = false } = {}) {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams({ per_page: "15", page: String(page) });
@@ -66,6 +67,12 @@ export default function AdminOrders() {
   useEffect(() => {
     load("", "", 1);
   }, [token]);
+
+  usePolling(
+    () => load(search, status, meta?.current_page || 1, { silent: true }),
+    30000,
+    Boolean(token),
+  );
 
   return (
     <>

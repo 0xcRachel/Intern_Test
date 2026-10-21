@@ -12,6 +12,10 @@ FROM node:24-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
+ARG VITE_ZALO_URL=https://zalo.me/
+ARG VITE_MESSENGER_URL=https://m.me/
+ENV VITE_ZALO_URL=$VITE_ZALO_URL
+ENV VITE_MESSENGER_URL=$VITE_MESSENGER_URL
 RUN npm run build
 
 FROM node:24-alpine

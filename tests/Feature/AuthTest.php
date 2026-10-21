@@ -80,4 +80,23 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['password']);
     }
+
+    public function test_login_returns_profile_fields_without_a_refresh(): void
+    {
+        User::factory()->create([
+            'email' => 'avatar@example.com',
+            'password' => 'password123',
+            'avatar' => 'https://example.com/avatar.jpg',
+            'target_band' => '7.5',
+            'bio' => 'Đang luyện IELTS.',
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'avatar@example.com',
+            'password' => 'password123',
+        ])->assertOk()
+            ->assertJsonPath('user.avatar', 'https://example.com/avatar.jpg')
+            ->assertJsonPath('user.target_band', '7.5')
+            ->assertJsonPath('user.bio', 'Đang luyện IELTS.');
+    }
 }

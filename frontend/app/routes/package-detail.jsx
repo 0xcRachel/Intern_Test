@@ -173,7 +173,9 @@ export default function PackageDetail() {
     api("/my/courses", { token })
       .then((data) => {
         if (!active) return;
-        setOwned((data?.data || []).some((course) => String(course.id) === String(packageId)));
+        setOwned((data?.data || []).some((course) =>
+          String(course.id) === String(packageId) || String(course.slug) === String(packageId),
+        ));
       })
       .catch(() => {});
     return () => {

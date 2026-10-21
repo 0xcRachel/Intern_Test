@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Document;
+use App\Models\Enrollment;
 use App\Models\PreviewLog;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -16,11 +18,14 @@ class DocumentPreviewTest extends TestCase
     use RefreshDatabase;
 
     private Document $document;
+
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('local');
 
         $this->user = User::factory()->create(['role' => 'student']);
 
@@ -30,6 +35,7 @@ class DocumentPreviewTest extends TestCase
             'total_pages' => 30,
             'preview_pages' => 5,
         ]);
+        Storage::disk('local')->put($this->document->file_path, "%PDF-1.4\npreview fixture\n%%EOF\n");
     }
 
     private function signedStreamUrl(?int $userId = null, ?Carbon $expiresAt = null): string
@@ -55,12 +61,8 @@ class DocumentPreviewTest extends TestCase
             ->assertJsonPath('title', 'IELTS Reading Official Guide.pdf')
             ->assertJsonPath('total_pages', 30)
             ->assertJsonPath('preview_pages', 5)
-            ->assertJsonStructure(['preview_url', 'expires_at']);
-
-        $previewUrl = $response->json('preview_url');
-        $this->assertStringContainsString('signature=', $previewUrl);
-        $this->assertStringContainsString('expires=', $previewUrl);
-        $this->assertStringContainsString('user=' . $this->user->id, $previewUrl);
+            ->assertJsonPath('preview_url', null)
+            ->assertJsonStructure(['expires_at']);
     }
 
     public function test_unauthenticated_user_cannot_generate_preview_url(): void
@@ -72,12 +74,17 @@ class DocumentPreviewTest extends TestCase
 
     public function test_valid_signed_url_grants_access_and_logs_to_preview_logs(): void
     {
+        Enrollment::create([
+            'user_id' => $this->user->id,
+            'package_id' => $this->document->unit->package_id,
+            'enrolled_at' => now(),
+        ]);
+
         $response = $this->getJson($this->signedStreamUrl());
 
-        $response->assertStatus(200)
-            ->assertJsonPath('status', 'authorized')
-            ->assertJsonPath('document.id', $this->document->id)
-            ->assertJsonPath('document.preview_pages', 5);
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('X-Preview-Pages', '5');
 
         // Verify log created and bound to the signed user
         $log = PreviewLog::where('document_id', $this->document->id)->first();
@@ -110,7 +117,7 @@ class DocumentPreviewTest extends TestCase
     public function test_invalid_signature_returns_403(): void
     {
         // Tamper the signature
-        $tamperedUrl = $this->signedStreamUrl() . 'tampered';
+        $tamperedUrl = $this->signedStreamUrl().'tampered';
 
         $this->getJson($tamperedUrl)->assertStatus(403);
     }

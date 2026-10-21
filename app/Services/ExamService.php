@@ -45,6 +45,7 @@ class ExamService
     public function update(Exam $exam, array $data): Exam
     {
         $exam->update($data);
+
         return $exam->fresh();
     }
 
@@ -55,10 +56,39 @@ class ExamService
 
     /**
      * Start a new attempt for a student, snapshotting shuffled questions without answers.
+     *
+     * Each student may only have ONE in-progress attempt per exam. If an
+     * existing active attempt is found, it is returned instead of creating a
+     * duplicate. Attempts whose time has already expired are auto-completed
+     * before the check so they do not block a fresh start.
      */
     public function startAttempt(Exam $exam, int $userId): Attempt
     {
         $exam->loadMissing(['questions.options']);
+
+        // Check for an existing in-progress attempt and return it if still valid
+        $existing = Attempt::where('user_id', $userId)
+            ->where('exam_id', $exam->id)
+            ->where('status', 'in_progress')
+            ->first();
+
+        if ($existing) {
+            // Auto-expire if time ran out while the student was away
+            $rawStart = $existing->start_time ?? $existing->started_at ?? Carbon::now();
+            $startTime = $rawStart instanceof Carbon ? $rawStart : Carbon::parse($rawStart);
+            $deadline = $startTime->copy()->addMinutes($exam->duration_minutes);
+
+            if (Carbon::now()->greaterThan($deadline)) {
+                $existing->update([
+                    'status' => 'completed',
+                    'end_time' => $deadline,
+                    'submitted_at' => $deadline,
+                ]);
+                // Fall through to create a new attempt
+            } else {
+                return $existing;
+            }
+        }
 
         // Shuffle questions
         $shuffledQuestions = $exam->questions->shuffle()->values();
@@ -79,7 +109,7 @@ class ExamService
             ];
         })->toArray();
 
-        $startTime = Carbon::now();
+        $now = Carbon::now();
 
         return Attempt::create([
             'user_id' => $userId,
@@ -92,8 +122,8 @@ class ExamService
             'percentage' => 0,
             'is_passed' => false,
             'status' => 'in_progress',
-            'start_time' => $startTime,
-            'started_at' => $startTime,
+            'start_time' => $now,
+            'started_at' => $now,
         ]);
     }
 

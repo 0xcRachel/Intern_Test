@@ -128,6 +128,27 @@ export function DocumentPreviewModal({ open, onClose, document, preview }) {
           </Badge>
         </div>
 
+        {preview.preview_url && owned && isAudio ? (
+          <div className="rounded-lg border border-line bg-surface-raised p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-steel">
+              Nghe thử audio
+            </p>
+            <audio className="w-full" controls preload="metadata" src={preview.preview_url}>
+              Trình duyệt không hỗ trợ phát audio.
+            </audio>
+          </div>
+        ) : null}
+
+        {preview.preview_url && owned && !isAudio ? (
+          <div className="overflow-hidden rounded-lg border border-line bg-surface-raised">
+            <iframe
+              title={`Bản xem trước ${document.title}`}
+              src={`${preview.preview_url}#page=1&zoom=page-width`}
+              className="h-[min(68vh,720px)] w-full"
+            />
+          </div>
+        ) : null}
+
         {shownPages > 0 ? (
           <div className="space-y-4">
             {pages.map((page, index) => (

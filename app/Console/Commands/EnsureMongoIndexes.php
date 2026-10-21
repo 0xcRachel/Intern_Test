@@ -31,6 +31,12 @@ class EnsureMongoIndexes extends Command
                     'key' => ['exam_id' => 1, 'status' => 1, 'created_at' => -1],
                     'name' => 'attempts_exam_status_created',
                 ],
+                [
+                    'key' => ['user_id' => 1, 'exam_id' => 1],
+                    'name' => 'one_open_attempt_per_student_exam',
+                    'unique' => true,
+                    'partialFilterExpression' => ['status' => 'in_progress'],
+                ],
             ]));
 
             ActivityLog::raw(fn ($collection) => $collection->createIndexes([

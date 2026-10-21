@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Keep bearer tokens short-lived. Clients can re-authenticate when the
+    // token expires instead of retaining an unlimited credential.
+    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 1440),
 
     /*
     |--------------------------------------------------------------------------

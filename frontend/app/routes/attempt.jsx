@@ -56,6 +56,8 @@ function AttemptPage() {
   const answersRef = useRef({});
   const submittedRef = useRef(false);
   const saveTimerRef = useRef(null);
+  const saveQueueRef = useRef(Promise.resolve());
+  const pendingSaveRef = useRef(null);
 
   useEffect(() => {
     answersRef.current = answers;
@@ -120,18 +122,26 @@ function AttemptPage() {
 
   async function saveAnswers(nextAnswers) {
     if (!attempt || submittedRef.current) return;
-    setAutosaveStatus("saving");
-    try {
-      const data = await api(`/attempts/${attempt.attempt_id}/save`, {
-        method: "POST",
-        token,
-        body: { answers: answersToPayload(nextAnswers) },
-      });
-      setAutosaveStatus("saved");
-      setLastSaved(data?.saved_at ? new Date(data.saved_at).toLocaleTimeString("vi-VN") : "");
-    } catch {
-      setAutosaveStatus("error");
-    }
+    pendingSaveRef.current = nextAnswers;
+    const queued = saveQueueRef.current.then(async () => {
+      const answersToSave = pendingSaveRef.current;
+      pendingSaveRef.current = null;
+      if (!answersToSave || !attempt || submittedRef.current) return;
+      setAutosaveStatus("saving");
+      try {
+        const data = await api(`/attempts/${attempt.attempt_id}/save`, {
+          method: "POST",
+          token,
+          body: { answers: answersToPayload(answersToSave) },
+        });
+        setAutosaveStatus("saved");
+        setLastSaved(data?.saved_at ? new Date(data.saved_at).toLocaleTimeString("vi-VN") : "");
+      } catch {
+        setAutosaveStatus("error");
+      }
+    });
+    saveQueueRef.current = queued.catch(() => undefined);
+    return queued;
   }
 
   function handleSelect(questionId, optionId) {
@@ -140,7 +150,7 @@ function AttemptPage() {
     setAnswers(next);
     answersRef.current = next;
     if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = window.setTimeout(() => saveAnswers(next), 350);
+    saveTimerRef.current = window.setTimeout(() => saveAnswers(next), 120);
   }
 
   async function submitExam(auto = false) {
@@ -148,6 +158,8 @@ function AttemptPage() {
     setSubmitting(true);
     setError("");
     try {
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+      await saveAnswers(answersRef.current);
       const payload = answersToPayload(answersRef.current);
       const result = await api(`/attempts/${attempt.attempt_id}/submit`, {
         method: "POST",

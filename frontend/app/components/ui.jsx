@@ -300,7 +300,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-3 backdrop-blur-[2px] sm:p-6"
       data-lenis-prevent
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
@@ -314,7 +314,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
         tabIndex={-1}
         data-lenis-prevent
         className={classNames(
-          "page-enter max-h-[92vh] w-full overflow-y-auto rounded-t-xl border border-line bg-surface-raised shadow-2xl outline-none sm:rounded-lg",
+          "page-enter flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface-raised shadow-2xl outline-none sm:max-h-[calc(100dvh-3rem)]",
           widths[size] || widths.md,
         )}
       >
@@ -336,7 +336,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="px-5 py-5">{children}</div>
+        <div className="min-h-0 overflow-y-auto px-5 py-5">{children}</div>
         {footer ? (
           <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-canvas/60 px-5 py-4">
             {footer}

@@ -40,7 +40,8 @@ class CheckoutController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $orders = Order::with('items')
+        $orders = Order::query()
+            ->with('items:id,order_id,package_id,package_title,package_slug,price,quantity')
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate((int) $request->query('per_page', 10));

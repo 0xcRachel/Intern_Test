@@ -16,18 +16,28 @@ class DashboardController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $recentOrders = Order::with(['user', 'items'])
+        $recentOrders = Order::query()
+            ->select(['id', 'user_id', 'code', 'status', 'total', 'created_at'])
+            ->with([
+                'user:id,name',
+                'items:id,order_id',
+            ])
             ->latest()
             ->limit(5)
             ->get();
 
-        $recentEnrollments = Enrollment::with(['user', 'package'])
+        $recentEnrollments = Enrollment::query()
+            ->select(['id', 'user_id', 'package_id', 'enrolled_at'])
+            ->with([
+                'user:id,name',
+                'package:id,title',
+            ])
             ->latest('enrolled_at')
             ->limit(5)
             ->get();
 
         return response()->json([
-            'message' => 'Chào mừng trở lại, ' . ($request->user()?->name ?? 'Quản trị viên') . '.',
+            'message' => 'Chào mừng trở lại, '.($request->user()?->name ?? 'Quản trị viên').'.',
             'metrics' => [
                 'students' => User::where('role', 'student')->count(),
                 'packages' => Package::where('is_active', true)->count(),

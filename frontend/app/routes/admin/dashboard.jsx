@@ -15,6 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
+import { usePolling } from "../../lib/use-polling";
 import { useAuth } from "../../context/auth";
 import { AiQuestionAssistant } from "../../components/ai-question-assistant";
 import { Reveal } from "../../components/reveal";
@@ -92,8 +93,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function load() {
-    setLoading(true);
+  async function load({ silent = false } = {}) {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const [dashboardData, examsData] = await Promise.all([
@@ -112,6 +113,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
   }, [token]);
+
+  usePolling(() => load({ silent: true }), 30000, Boolean(token));
 
   const metrics = dashboard?.metrics || {};
   const questionCount = exams.reduce(

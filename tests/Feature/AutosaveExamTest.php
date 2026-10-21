@@ -17,7 +17,9 @@ class AutosaveExamTest extends TestCase
     use RefreshDatabase;
 
     private User $student;
+
     private User $otherStudent;
+
     private Exam $exam;
 
     protected function setUp(): void
@@ -60,6 +62,60 @@ class AutosaveExamTest extends TestCase
 
         $attempt->refresh();
         $this->assertEquals([['question_id' => 1, 'option_id' => 2]], $attempt->submitted_answers);
+    }
+
+    public function test_autosave_merges_a_single_question_without_erasing_previous_answers(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $attempt = Attempt::create([
+            'user_id' => $this->student->id,
+            'exam_id' => $this->exam->id,
+            'questions' => [['id' => 1], ['id' => 2]],
+            'submitted_answers' => ['1' => 2],
+            'status' => 'in_progress',
+            'start_time' => Carbon::now(),
+        ]);
+
+        $this->postJson("/api/attempts/{$attempt->id}/save", [
+            'answers' => [['question_id' => 2, 'option_id' => 3]],
+        ])->assertOk();
+
+        $this->assertSame([
+            ['question_id' => 1, 'option_id' => 2],
+            ['question_id' => 2, 'option_id' => 3],
+        ], $attempt->fresh()->submitted_answers);
+    }
+
+    public function test_expired_attempt_cannot_accept_late_autosave(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $attempt = Attempt::create([
+            'user_id' => $this->student->id,
+            'exam_id' => $this->exam->id,
+            'questions' => [['id' => 1]],
+            'submitted_answers' => [],
+            'status' => 'in_progress',
+            'start_time' => Carbon::now()->subMinutes(61),
+        ]);
+
+        $this->postJson("/api/attempts/{$attempt->id}/save", ['answers' => ['1' => 2]])
+            ->assertStatus(422);
+    }
+
+    public function test_starting_the_same_exam_returns_the_existing_open_attempt(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $first = $this->postJson("/api/exams/{$this->exam->id}/attempts")->assertCreated();
+        $second = $this->postJson("/api/exams/{$this->exam->id}/attempts")->assertOk();
+
+        $this->assertSame($first->json('attempt_id'), $second->json('attempt_id'));
+        $this->assertSame(1, Attempt::where('user_id', $this->student->id)
+            ->where('exam_id', $this->exam->id)
+            ->where('status', 'in_progress')
+            ->count());
     }
 
     public function test_student_can_resume_attempt_with_state_and_remaining_time(): void

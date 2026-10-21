@@ -11,6 +11,21 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    private function userPayload(User $user): array
+    {
+        return $user->only([
+            'id',
+            'name',
+            'email',
+            'role',
+            'avatar',
+            'provider',
+            'target_band',
+            'bio',
+            'created_at',
+        ]);
+    }
+
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -30,12 +45,7 @@ class AuthController extends Controller
             'token' => $token,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
+            'user' => $this->userPayload($user),
         ], 201);
     }
 
@@ -60,12 +70,7 @@ class AuthController extends Controller
             'token' => $token,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
+            'user' => $this->userPayload($user),
         ]);
     }
 

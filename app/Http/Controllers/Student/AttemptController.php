@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attempt;
 use App\Models\Exam;
 use App\Services\ExamService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,7 @@ class AttemptController extends Controller
         $exam = Exam::with(['questions.options'])->findOrFail($id);
 
         $attempt = $this->examService->startAttempt($exam, $request->user()->id);
+        $deadline = Carbon::parse($attempt->start_time ?? now())->addMinutes((int) $exam->duration_minutes);
 
         return response()->json([
             'attempt_id' => $attempt->id,
@@ -31,8 +33,9 @@ class AttemptController extends Controller
             'exam_title' => $exam->title,
             'duration_minutes' => $exam->duration_minutes,
             'start_time' => $attempt->start_time,
+            'remaining_seconds' => max(0, now()->diffInSeconds($deadline)),
             'questions' => $attempt->questions,
-        ], 201);
+        ], $attempt->wasRecentlyCreated ? 201 : 200);
     }
 
     /**
@@ -106,21 +109,54 @@ class AttemptController extends Controller
             'answers' => ['required', 'array'],
         ]);
 
-        $attempt->update([
-            'submitted_answers' => $validated['answers'],
-            'answers' => $validated['answers'],
-        ]);
+        $exam = Exam::findOrFail($attempt->exam_id);
+        $startedAt = Carbon::parse($attempt->start_time ?? $attempt->started_at ?? now());
+        $deadline = $startedAt->copy()->addMinutes((int) $exam->duration_minutes);
+        abort_if(now()->greaterThanOrEqualTo($deadline), 422, 'This attempt has expired.');
+
+        $allowedQuestionIds = collect($attempt->questions ?? [])->pluck('id')->map(fn ($id) => (string) $id)->flip();
+        $incoming = collect($validated['answers'])->mapWithKeys(function ($answer, $key) {
+            if (is_array($answer) && array_key_exists('question_id', $answer)) {
+                return [(string) $answer['question_id'] => $answer['option_id'] ?? $answer['selected_option_id'] ?? null];
+            }
+
+            return [(string) $key => $answer];
+        })->filter(fn ($option, $questionId) => $option !== null && $allowedQuestionIds->has((string) $questionId));
+        $existing = collect($attempt->submitted_answers ?? $attempt->answers ?? [])->mapWithKeys(function ($answer, $key) {
+            if (is_array($answer) && array_key_exists('question_id', $answer)) {
+                return [(string) $answer['question_id'] => $answer['option_id'] ?? $answer['selected_option_id'] ?? null];
+            }
+
+            return [(string) $key => $answer];
+        });
+        foreach ($incoming as $questionId => $option) {
+            $existing->put((string) $questionId, $option);
+        }
+
+        $answers = $existing
+            ->map(fn ($option, $questionId) => [
+                'question_id' => (int) $questionId,
+                'option_id' => $option,
+            ])
+            ->values()
+            ->all();
+
+        $attempt->update(['submitted_answers' => $answers, 'answers' => $answers]);
 
         return response()->json([
             'message' => 'Answers autosaved successfully.',
             'attempt_id' => $attempt->id,
             'saved_at' => now(),
-            'answers' => $validated['answers'],
+            'answers' => $answers,
         ]);
     }
 
     /**
-     * Resume an in-progress attempt, returning questions, saved answers, and remaining time
+     * Resume an in-progress attempt, returning questions, saved answers, and remaining time.
+     *
+     * If the server detects that the exam duration has elapsed since the
+     * attempt started, the attempt is silently marked as completed so the
+     * student cannot keep working past the deadline.
      */
     public function resume(Request $request, int|string $id): JsonResponse
     {
@@ -134,8 +170,19 @@ class AttemptController extends Controller
 
         $exam = Exam::findOrFail($attempt->exam_id);
         $rawStart = $attempt->start_time ?? $attempt->started_at ?? now();
-        $startTime = $rawStart instanceof \Carbon\Carbon ? $rawStart : \Carbon\Carbon::parse($rawStart);
+        $startTime = $rawStart instanceof Carbon ? $rawStart : Carbon::parse($rawStart);
         $deadline = $startTime->copy()->addMinutes($exam->duration_minutes);
+
+        // Auto-expire if duration has passed while the student was offline
+        if ($attempt->status === 'in_progress' && now()->greaterThan($deadline)) {
+            $attempt->update([
+                'status' => 'completed',
+                'end_time' => $deadline,
+                'submitted_at' => $deadline,
+            ]);
+            $attempt->refresh();
+        }
+
         $remainingSeconds = now()->lt($deadline) ? (int) now()->diffInSeconds($deadline) : 0;
 
         return response()->json([

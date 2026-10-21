@@ -112,10 +112,13 @@ class DatabaseSeeder extends Seeder
         // 4. Sample IELTS Package with Units & Documents
         $this->call(IeltsPackageSeeder::class);
 
-        // 5. Factory-generated demo packages and exams (idempotent by title)
+        // 5. Original, non-scanned Mindset for IELTS catalogue fixtures.
+        $this->call(MindsetForIeltsSeeder::class);
+
+        // 6. Factory-generated demo packages and exams (idempotent by title)
         $this->call(DemoContentSeeder::class);
 
-        // 6. Storefront demo: coupons, a paid order and course enrollments
+        // 7. Storefront demo: coupons, a paid order and course enrollments
         $this->call(CommerceDemoSeeder::class);
     }
 }

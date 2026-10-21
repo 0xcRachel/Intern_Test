@@ -32,6 +32,7 @@ export async function api(path, { method = "GET", body, token, headers = {} } = 
     response = await fetch(`${API_BASE}${path}`, {
       method,
       headers: requestHeaders,
+      cache: method === "GET" ? "no-store" : undefined,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
@@ -74,6 +75,8 @@ const MESSAGE_TRANSLATIONS = {
   "Unauthorized. You can only save your own attempt.": "Bạn chỉ có thể lưu bài làm của chính mình.",
   "This attempt has already been submitted.": "Bài làm này đã được nộp trước đó.",
   "Cannot autosave on a completed attempt.": "Không thể lưu thêm vì bài làm đã hoàn thành.",
+  "This attempt has expired.": "Thời gian làm bài đã hết; đáp án đã lưu được giữ lại.",
+  "Preview file is unavailable.": "Bản xem trước hiện chưa sẵn sàng. Vui lòng thử lại sau.",
   "Invalid or expired preview URL signature.": "Liên kết xem trước không hợp lệ hoặc đã hết hạn.",
   "Preview URL is missing the user context.": "Liên kết xem trước thiếu thông tin tài khoản.",
   "This preview URL belongs to another user.": "Liên kết xem trước thuộc về tài khoản khác.",

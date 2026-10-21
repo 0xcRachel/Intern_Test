@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\Route;
 // Public Auth Routes
 Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:6,1');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:6,1');
 
 // OAuth (Google / GitHub). Callback URLs live under /api so Nginx can route
 // them to PHP, while the browser is returned to the React app afterwards.
@@ -81,7 +82,8 @@ Route::middleware(['auth:sanctum', 'student'])->group(function () {
 Route::get('/packages', [PackageController::class, 'index']);
 Route::get('/packages/{id}', [PackageController::class, 'show']);
 
-// Signed preview stream (the signature is the access grant; no bearer token
-// is required so the URL can be embedded in a viewer/iframe).
+// Signed stream for enrolled users. The signature lets media elements load the
+// file without attaching the bearer token; ownership is checked server-side.
 Route::get('/documents/{document}/stream', [DocumentController::class, 'stream'])
+    ->middleware('throttle:30,1')
     ->name('documents.stream');
