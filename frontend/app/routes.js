@@ -19,6 +19,9 @@ export default [
   route("admin", "routes/admin/layout.jsx", [
     index("routes/admin/dashboard.jsx"),
     route("exams", "routes/admin/exams.jsx"),
+    route("packages", "routes/admin/packages.jsx"),
+    route("packages/new", "routes/admin/package-form-new.jsx"),
+    route("packages/:packageId/edit", "routes/admin/package-form.jsx"),
     route("previews", "routes/admin/preview-statistics.jsx"),
     route("orders", "routes/admin/orders.jsx"),
     route("orders/:orderId", "routes/admin/order-detail.jsx"),

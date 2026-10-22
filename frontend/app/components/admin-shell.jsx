@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router";
+import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import {
   ArrowUpRight,
   BookOpen,
@@ -9,17 +9,21 @@ import {
   Menu,
   ReceiptText,
   ShieldCheck,
+  ChevronRight,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 import { useAuth } from "../context/auth";
-import { useRouteMotion } from "../context/route-motion";
+import { PageMotion } from "./page-motion";
 import { classNames } from "../lib/format";
 import { Button } from "./ui";
+import { NotificationCenter } from "./notification-center";
 
 const primaryLinks = [
   { to: "/admin", label: "Tổng quan", icon: LayoutDashboard, end: true },
   { to: "/admin/exams", label: "Đề luyện tập", icon: ClipboardList },
+  { to: "/admin/packages", label: "Danh mục khóa học", icon: BookOpen },
   { to: "/admin/previews", label: "Lượt xem thử", icon: Eye },
   { to: "/admin/orders", label: "Đơn hàng", icon: ReceiptText },
 ];
@@ -39,8 +43,8 @@ function SidebarContent({ onNavigate }) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-ink text-white">
-      <div className="border-b border-white/10 px-6 py-6">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-[#101d37] text-white">
+      <div className="border-b border-white/10 px-6 py-7">
         <Logo light />
         <p className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-powder">
           <ShieldCheck className="h-3 w-3" />
@@ -64,9 +68,9 @@ function SidebarContent({ onNavigate }) {
                   onClick={onNavigate}
                   className={({ isActive }) =>
                     classNames(
-                      "flex min-h-11 items-center gap-3 rounded-md border px-3 text-sm transition-colors",
+                      "flex min-h-12 items-center gap-3 rounded-xl border px-3 text-[13px] transition-all duration-200",
                       isActive
-                        ? "border-white/10 bg-white/10 font-medium text-white"
+                        ? "border-steel bg-steel font-semibold text-white shadow-lg shadow-steel/15"
                         : "border-transparent text-white/60 hover:bg-white/5 hover:text-white",
                     )
                   }
@@ -134,8 +138,11 @@ function SidebarContent({ onNavigate }) {
 
 export function AdminShell({ children }) {
   const { user } = useAuth();
-  const routeAnimate = useRouteMotion();
+  const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const activeItem = primaryLinks.find((item) => item.end ? pathname === item.to : pathname.startsWith(item.to));
+
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   return (
     <div className="min-h-dvh bg-canvas text-ink">
@@ -146,7 +153,7 @@ export function AdminShell({ children }) {
         Bỏ qua điều hướng quản trị
       </a>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[272px] lg:block">
+      <aside className="fixed inset-y-4 left-4 z-40 hidden w-[248px] lg:block">
         <SidebarContent />
       </aside>
 
@@ -158,13 +165,14 @@ export function AdminShell({ children }) {
             onClick={() => setMobileOpen(false)}
             aria-label="Đóng menu quản trị"
           />
-          <aside className="relative h-full w-[280px] max-w-[85vw]">
+          <aside className="relative h-full w-[280px] max-w-[85vw] p-3">
             <SidebarContent onNavigate={() => setMobileOpen(false)} />
+            <button type="button" onClick={() => setMobileOpen(false)} aria-label="Đóng menu" className="absolute right-5 top-5 rounded-full bg-white/10 p-2 text-white"><X className="h-4 w-4" /></button>
           </aside>
         </div>
       ) : null}
 
-      <div className="flex min-h-dvh flex-col lg:pl-[272px]">
+      <div className="flex min-h-dvh min-w-0 flex-col lg:pl-[280px]">
         <header className="sticky top-0 z-30 border-b border-line/80 bg-canvas/85 backdrop-blur-md lg:hidden">
           <div className="flex h-16 items-center justify-between gap-3 px-5">
             <button
@@ -184,14 +192,12 @@ export function AdminShell({ children }) {
           </div>
         </header>
 
-        <header className="hidden items-center justify-between gap-4 border-b border-line/80 px-6 py-4 lg:flex xl:px-10">
+        <header className="sticky top-0 z-30 hidden h-20 items-center justify-between gap-4 border-b border-line/80 bg-canvas/95 px-6 backdrop-blur-xl lg:flex xl:px-10">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-steel">
-              ExamPlatform
-            </p>
-            <p className="mt-0.5 text-sm font-medium text-ink">Bảng điều khiển quản trị</p>
+            <p className="flex items-center gap-2 text-xs text-muted"><span>Workspace</span><ChevronRight className="h-3 w-3" /><span className="font-semibold text-ink">{activeItem?.label || "Quản trị"}</span></p>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationCenter />
             <Link to="/exams" className="inline-flex">
               <Button variant="secondary" size="sm">
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -209,11 +215,10 @@ export function AdminShell({ children }) {
         <main
           id="admin-content"
           className={classNames(
-            "mx-auto w-full max-w-[1320px] flex-1 px-5 py-8 sm:px-6 lg:px-8 xl:px-10",
-            routeAnimate ? "page-enter" : "",
+            "workspace-content mx-auto w-full min-w-0 max-w-[1480px] flex-1 px-4 py-8 sm:px-6 lg:px-8 xl:px-10",
           )}
         >
-          {children}
+          <PageMotion>{children}</PageMotion>
         </main>
 
         <footer className="border-t border-line px-5 py-5 text-xs text-muted sm:px-6 lg:px-8 xl:px-10">

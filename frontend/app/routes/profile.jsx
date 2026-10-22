@@ -19,7 +19,6 @@ import { RequireAuth } from "../components/auth-gate";
 import { useNotifications } from "../components/notifications";
 import { Reveal } from "../components/reveal";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -39,11 +38,11 @@ function ProfilePage() {
   const { user, token, updateProfile } = useAuth();
   const notifications = useNotifications();
   const [courses, setCourses] = useState([]);
+  const [coursesCount, setCoursesCount] = useState(0);
   const [ordersCount, setOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     avatar: "",
@@ -65,16 +64,17 @@ function ProfilePage() {
     let active = true;
     setLoading(true);
     Promise.all([
-      api("/my/courses", { token }),
+      api("/my/courses?per_page=6", { token }),
       api("/orders?per_page=1", { token }),
     ])
       .then(([coursesData, ordersData]) => {
         if (!active) return;
         setCourses(coursesData?.data || []);
+        setCoursesCount(coursesData?.meta?.total ?? coursesData?.total ?? 0);
         setOrdersCount(ordersData?.meta?.total || 0);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được hồ sơ" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -91,7 +91,6 @@ function ProfilePage() {
   async function handleSave(event) {
     event?.preventDefault();
     setSaving(true);
-    setError("");
     try {
       await updateProfile({
         name: form.name.trim(),
@@ -127,11 +126,6 @@ function ProfilePage() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được hồ sơ">
-          {error}
-        </Alert>
-      ) : null}
 
       <Reveal className="relative mt-6 overflow-hidden rounded-2xl bg-ink p-6 text-white sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-powder/20 blur-3xl" />
@@ -169,7 +163,7 @@ function ProfilePage() {
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-center">
-              <p className="text-xl font-semibold">{loading ? "—" : courses.length}</p>
+              <p className="text-xl font-semibold">{loading ? "—" : coursesCount}</p>
               <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-white/45">Khóa học</p>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-center">
@@ -370,7 +364,6 @@ function ProfilePage() {
               placeholder="Mục tiêu học tập và điểm mạnh của bạn..."
             />
           </Field>
-          {error ? <Alert tone="error">{error}</Alert> : null}
         </form>
       </Modal>
     </>

@@ -18,9 +18,9 @@ import { api, errorMessage } from "../../lib/api";
 import { usePolling } from "../../lib/use-polling";
 import { useAuth } from "../../context/auth";
 import { AiQuestionAssistant } from "../../components/ai-question-assistant";
+import { useNotifications } from "../../components/notifications";
 import { Reveal } from "../../components/reveal";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -87,15 +87,14 @@ function MetricCard({ label, value, hint, icon: Icon, dark = false }) {
 }
 
 export default function AdminDashboard() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const notifications = useNotifications();
   const [dashboard, setDashboard] = useState(null);
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   async function load({ silent = false } = {}) {
     if (!silent) setLoading(true);
-    setError("");
     try {
       const [dashboardData, examsData] = await Promise.all([
         api("/admin/dashboard", { token }),
@@ -104,7 +103,7 @@ export default function AdminDashboard() {
       setDashboard(dashboardData);
       setExams(examsData?.data || []);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được dữ liệu quản trị" });
     } finally {
       setLoading(false);
     }
@@ -126,9 +125,9 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="Quản trị"
-        title="Tổng quan hệ thống"
-        description={dashboard?.message || "Theo dõi doanh thu, học viên, đề thi và nội dung."}
+        eyebrow="Workspace / Overview"
+        title={`Xin chào, ${user?.name?.split(" ").at(-1) || "Admin"}.`}
+        description="Một góc nhìn rõ ràng về hoạt động học tập và kinh doanh của bạn."
         actions={
           <>
             <Button variant="secondary" onClick={load} disabled={loading}>
@@ -137,7 +136,7 @@ export default function AdminDashboard() {
             </Button>
             <Link
               to="/admin/exams/new"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-powder px-4 text-sm font-medium text-ink transition-colors hover:bg-[#8bb9cf]"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-steel px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2546cb]"
             >
               <Plus className="h-4 w-4" />
               Tạo đề
@@ -146,11 +145,14 @@ export default function AdminDashboard() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được dữ liệu quản trị">
-          {error}
-        </Alert>
-      ) : null}
+
+      <div className="mt-2 grid gap-3 sm:grid-cols-3">
+        {[
+          { to: "/admin/packages/new", label: "Tạo khóa học", hint: "Xây dựng nội dung mới", icon: BookOpen },
+          { to: "/admin/exams/new", label: "Tạo đề luyện tập", hint: "Thiết kế bài kiểm tra", icon: ClipboardList },
+          { to: "/admin/orders", label: "Quản lý đơn hàng", hint: "Theo dõi lượt ghi danh", icon: ReceiptText },
+        ].map(({ to, label, hint, icon: Icon }) => <Link key={to} to={to} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition-colors hover:border-steel/40"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mist text-steel"><Icon className="h-5 w-5" /></span><span className="flex-1"><span className="block text-sm font-semibold">{label}</span><span className="mt-1 block text-xs text-muted">{hint}</span></span><ArrowRight className="h-4 w-4 text-muted transition-transform group-hover:translate-x-1" /></Link>)}
+      </div>
 
       {loading ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

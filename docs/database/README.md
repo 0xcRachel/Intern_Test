@@ -6,17 +6,17 @@ SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường
 
 ## Cách đọc và các điểm cần chú ý
 
-- 18 bảng được khai báo trong migrations; bảng quản lý `migrations` do Laravel tạo không nằm trong 18 bảng này.
-- 10 thực thể nghiệp vụ, bao gồm users; trang hạ tầng có 8 bảng khác và lặp lại users để thể hiện liên kết.
+- 22 bảng được khai báo trong migrations; bảng quản lý `migrations` do Laravel tạo không nằm trong 22 bảng này.
+- Trang nghiệp vụ bao gồm users, ngân hàng đề, catalog khóa học, checkout/enrollment và các log lai SQL/MongoDB; trang hạ tầng chứa cache, queue, session và token.
 - `attempts`, `activity_logs`, `preview_logs` dùng MongoDB khi PHP nạp extension mongodb và `MONGO_ENABLED` khác false. Nếu không có extension hoặc `MONGO_ENABLED=false`, model dùng database SQL mặc định. Không tự fallback khi MongoDB mất kết nối.
 - Các cột và dấu nullable thể hiện schema SQL. MongoDB không có migration validator; kiểu BSON được suy ra từ fillable, casts và các lệnh ghi của ứng dụng.
-- SQL có 6 FK cascade: questions.exam_id, options.question_id, units.package_id, documents.unit_id, attempts.user_id và attempts.exam_id. Hai FK của attempts chỉ có tác dụng ở nhánh SQL.
+- SQL có các FK cascade/null-on-delete cho ngân hàng đề, catalog, orders và enrollments. Hai FK của attempts chỉ có tác dụng ở nhánh SQL; order_items.package_id và enrollments.order_id dùng null-on-delete.
 - activity_logs.user_id, preview_logs.user_id, preview_logs.document_id và sessions.user_id là tham chiếu logic, không được migration ràng buộc FK. Log có thể tồn tại sau khi đối tượng nguồn bị xóa.
 - personal_access_tokens dùng quan hệ polymorphic (tokenable_type, tokenable_id). User sử dụng HasApiTokens; migration không giới hạn tokenable chỉ là User.
 - password_reset_tokens.email là PK, không có FK đến users.email.
 - attempts.questions lưu snapshot câu hỏi và options; submitted_answers, answers, wrong_questions là mảng nhúng, không phải bảng trung gian. Trên SQL chúng là JSON text; trên MongoDB là native BSON array.
 - activity_logs.metadata/properties có thể chứa exam_id và attempt_id tùy sự kiện; không phải FK hay cột độc lập. Trên MongoDB chúng là BSON document/array.
-- Chưa có quan hệ giữa packages và exams, cũng chưa thấy bảng mua gói/enrollment trong migrations hiện tại.
+- `orders.coupon_code` là snapshot mã giảm giá, không phải FK tới `coupons`; order item cũng lưu snapshot title/slug/price để giữ lịch sử đơn hàng.
 - Cardinality trên đường tham chiếu logic thể hiện ý định của ứng dụng, không bảo đảm toàn vẹn bằng database.
 
 ## Chỉ mục MongoDB
@@ -41,6 +41,11 @@ SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường
 | remember_token | varchar(100) | ? |
 | created_at | timestamp | ? |
 | updated_at | timestamp | ? |
+| avatar | varchar | ? |
+| provider | varchar | ? |
+| provider_id | varchar | ? |
+| target_band | varchar(16) | ? |
+| bio | text | ? |
 
 ### password_reset_tokens
 
@@ -201,6 +206,13 @@ SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường
 | is_active | boolean |  |
 | created_at | timestamp | ? |
 | updated_at | timestamp | ? |
+| slug | varchar | UQ ? |
+| level | varchar(32) |  |
+| duration_hours | uint |  |
+| rating | decimal(3,2) |  |
+| students_count | uint |  |
+| is_featured | boolean |  |
+| outcomes | json | ? |
 
 ### units
 
@@ -227,6 +239,7 @@ SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường
 | preview_pages | int |  |
 | created_at | timestamp | ? |
 | updated_at | timestamp | ? |
+| preview_content | json | ? |
 
 ### preview_logs
 
@@ -254,6 +267,66 @@ SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường
 | abilities | text | ? |
 | last_used_at | timestamp | ? |
 | expires_at | timestamp | ? |
+| created_at | timestamp | ? |
+| updated_at | timestamp | ? |
+
+### coupons
+
+| Cột | Kiểu Laravel / SQL | Khóa / nullable |
+|---|---|---|
+| id | bigint | PK |
+| code | varchar | UQ |
+| label | varchar |  |
+| type | varchar |  |
+| value | decimal(10,2) |  |
+| is_active | boolean |  |
+| expires_at | timestamp | ? |
+| usage_limit | uint | ? |
+| used_count | uint |  |
+| created_at | timestamp | ? |
+| updated_at | timestamp | ? |
+
+### orders
+
+| Cột | Kiểu Laravel / SQL | Khóa / nullable |
+|---|---|---|
+| id | bigint | PK |
+| user_id | bigint | FK |
+| code | varchar | UQ |
+| status | varchar |  |
+| subtotal | decimal(10,2) |  |
+| discount | decimal(10,2) |  |
+| total | decimal(10,2) |  |
+| currency | varchar |  |
+| coupon_code | varchar | ? |
+| payment_method | varchar | ? |
+| paid_at | timestamp | ? |
+| created_at | timestamp | ? |
+| updated_at | timestamp | ? |
+
+### order_items
+
+| Cột | Kiểu Laravel / SQL | Khóa / nullable |
+|---|---|---|
+| id | bigint | PK |
+| order_id | bigint | FK |
+| package_id | bigint | FK ? |
+| package_title | varchar |  |
+| package_slug | varchar | ? |
+| price | decimal(10,2) |  |
+| quantity | uint |  |
+| created_at | timestamp | ? |
+| updated_at | timestamp | ? |
+
+### enrollments
+
+| Cột | Kiểu Laravel / SQL | Khóa / nullable |
+|---|---|---|
+| id | bigint | PK |
+| user_id | bigint | FK |
+| package_id | bigint | FK |
+| order_id | bigint | FK ? |
+| enrolled_at | timestamp | ? |
 | created_at | timestamp | ? |
 | updated_at | timestamp | ? |
 

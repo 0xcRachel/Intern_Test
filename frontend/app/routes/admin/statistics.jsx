@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import {
-  Alert,
   Button,
   Card,
   EmptyState,
@@ -27,14 +27,13 @@ export function meta() {
 export default function AdminStatistics() {
   const { examId } = useParams();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [exam, setExam] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   async function load() {
     setLoading(true);
-    setError("");
     try {
       const [examData, statsData] = await Promise.all([
         api(`/admin/exams/${examId}`, { token }),
@@ -43,7 +42,7 @@ export default function AdminStatistics() {
       setExam(examData?.data || examData);
       setStats(statsData);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được thống kê" });
     } finally {
       setLoading(false);
     }
@@ -85,11 +84,6 @@ export default function AdminStatistics() {
         />
       </div>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được thống kê">
-          {error}
-        </Alert>
-      ) : null}
 
       {loading ? (
         <div className="mt-6 space-y-5">

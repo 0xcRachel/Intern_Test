@@ -54,8 +54,16 @@ export async function api(path, { method = "GET", body, token, headers = {} } = 
   }
 
   if (!response.ok) {
+    const responseMessage = data?.message || "";
+    const isHtmlError =
+      typeof responseMessage === "string" && /<\s*(?:!doctype|html|head|body)\b/i.test(responseMessage);
+    const fallbackMessage =
+      response.status === 502
+        ? "Máy chủ đang khởi động lại. Vui lòng thử lại sau vài giây."
+        : `Yêu cầu thất bại (${response.status}).`;
+
     throw new ApiError(
-      firstErrorMessage(data) || `Yêu cầu thất bại (${response.status}).`,
+      isHtmlError ? fallbackMessage : firstErrorMessage(data) || fallbackMessage,
       response.status,
       data,
     );

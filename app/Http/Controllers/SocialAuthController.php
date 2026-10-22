@@ -90,11 +90,21 @@ class SocialAuthController extends Controller
 
         Cache::put("oauth_login:{$code}", [
             'token' => $token,
-            'user' => $user->fresh(),
+            // Cache only scalars/arrays. Serializing an Eloquent model here can
+            // restore as an incomplete object on the follow-up exchange request.
+            'user' => $user->fresh()->only([
+                'id',
+                'name',
+                'email',
+                'role',
+                'avatar',
+                'target_band',
+                'bio',
+            ]),
         ], now()->addMinutes(3));
 
         return redirect(
-            rtrim(config('services.frontend_url'), '/') . '/login?oauth_code=' . $code
+            rtrim(config('services.frontend_url'), '/').'/login?oauth_code='.$code
         );
     }
 
@@ -104,7 +114,7 @@ class SocialAuthController extends Controller
             'code' => ['required', 'string', 'max:80'],
         ]);
 
-        $payload = Cache::pull('oauth_login:' . $validated['code']);
+        $payload = Cache::pull('oauth_login:'.$validated['code']);
 
         if (! $payload) {
             return response()->json([
@@ -112,7 +122,20 @@ class SocialAuthController extends Controller
             ], 422);
         }
 
-        return response()->json($payload);
+        return response()->json([
+            'token' => $payload['token'],
+            'user' => $payload['user'] instanceof User
+                ? $payload['user']->only([
+                    'id',
+                    'name',
+                    'email',
+                    'role',
+                    'avatar',
+                    'target_band',
+                    'bio',
+                ])
+                : $payload['user'],
+        ]);
     }
 
     private function isConfigured(string $provider): bool
@@ -124,7 +147,7 @@ class SocialAuthController extends Controller
     private function failure(string $message)
     {
         return redirect(
-            rtrim(config('services.frontend_url'), '/') . '/login?oauth_error=' . urlencode($message)
+            rtrim(config('services.frontend_url'), '/').'/login?oauth_error='.urlencode($message)
         );
     }
 }

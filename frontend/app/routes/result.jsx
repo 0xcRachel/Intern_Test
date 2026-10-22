@@ -12,8 +12,8 @@ import {
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
 import { RequireAuth } from "../components/auth-gate";
+import { useNotifications } from "../components/notifications";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -31,10 +31,10 @@ function ResultPage() {
   const { attemptId } = useParams();
   const location = useLocation();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [result, setResult] = useState(location.state?.result || null);
   const [snapshot, setSnapshot] = useState(null);
   const [loading, setLoading] = useState(!location.state?.result);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -55,7 +55,9 @@ function ResultPage() {
         if (active) setResult(data);
       })
       .catch((requestError) => {
-        if (active && !stored?.result) setError(errorMessage(requestError));
+        if (active && !stored?.result) {
+          notifications.error(errorMessage(requestError), { title: "Không tải được kết quả" });
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -76,22 +78,6 @@ function ResultPage() {
     return (
       <>
         <LoadingScreen label="Đang tải kết quả..." />
-      </>
-    );
-  }
-
-  if (error && !result) {
-    return (
-      <>
-        <Alert tone="error" title="Không tải được kết quả">
-          {error}
-        </Alert>
-        <Link to="/exams" className="mt-5 inline-block">
-          <Button variant="secondary">
-            <ArrowLeft className="h-4 w-4" />
-            Về danh sách đề
-          </Button>
-        </Link>
       </>
     );
   }

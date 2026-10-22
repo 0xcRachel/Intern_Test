@@ -1,11 +1,13 @@
 import { useEffect, useId, useRef } from "react";
-import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+import gsap from "gsap";
+import { ShieldCheck, X } from "lucide-react";
 import { classNames } from "../lib/format";
 import { useSmoothScroll } from "../context/smooth-scroll";
 
 const buttonVariants = {
   primary:
-    "bg-powder text-ink border border-powder hover:bg-[#8bb9cf] active:bg-[#7eafc7] shadow-sm",
+    "bg-steel text-white border border-steel hover:bg-[#2546cb] active:bg-[#203eae] shadow-[0_4px_12px_-4px_#3659e370]",
   secondary:
     "bg-surface-raised text-ink border border-line hover:border-steel/60 hover:bg-mist/40",
   ghost:
@@ -32,7 +34,7 @@ export function Button({
     <button
       type={type}
       className={classNames(
-        "inline-flex items-center justify-center rounded-md font-medium transition-[background-color,border-color,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50",
+        "ui-button inline-flex items-center justify-center rounded-xl font-semibold transition-[background-color,border-color,transform,box-shadow] duration-200 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50",
         buttonVariants[variant] || buttonVariants.primary,
         buttonSizes[size] || buttonSizes.md,
         className,
@@ -46,7 +48,7 @@ export function Card({ className, children, ...props }) {
   return (
     <section
       className={classNames(
-        "rounded-lg border border-line",
+        "ui-card rounded-2xl border border-line shadow-[0_2px_8px_-4px_#15233f14]",
         !/\bbg-[^\s]+/.test(className || "") && "bg-surface-raised",
         className,
       )}
@@ -59,9 +61,9 @@ export function Card({ className, children, ...props }) {
 
 export function Badge({ tone = "neutral", className, children }) {
   const tones = {
-    neutral: "bg-mist/70 text-ink border-[#c8dce6]",
-    blue: "bg-mist text-[#315a70] border-[#bfdbe8]",
-    sand: "bg-sand/45 text-[#65512f] border-[#dfc99f]",
+    neutral: "bg-surface-sunken text-muted border-line",
+    blue: "bg-mist text-steel border-[#d5dfff]",
+    sand: "bg-sand/45 text-[#795513] border-[#efdfb9]",
     success: "bg-[#e9f2ec] text-success border-[#c8dfd1]",
     danger: "bg-[#fbeceb] text-danger border-[#efc8c4]",
     dark: "bg-ink text-white border-ink",
@@ -104,7 +106,7 @@ export function Field({ label, htmlFor, hint, error, required, children }) {
 }
 
 const controlClass =
-  "w-full rounded-md border border-line bg-surface-raised px-3 py-2.5 text-sm text-ink placeholder:text-muted/70 transition-colors hover:border-[#bfcdd2] focus:border-steel focus:outline-none focus:ring-3 focus:ring-steel/15 disabled:bg-surface-sunken";
+  "w-full rounded-xl border border-line bg-surface-raised px-4 py-3 text-sm text-ink placeholder:text-muted/70 transition-colors hover:border-[#b9c7e4] focus:border-steel focus:outline-none focus:ring-3 focus:ring-steel/15 disabled:bg-surface-sunken";
 
 export function Input({ className, ...props }) {
   return <input className={classNames(controlClass, className)} {...props} />;
@@ -124,28 +126,6 @@ export function Select({ className, children, ...props }) {
     <select className={classNames(controlClass, className)} {...props}>
       {children}
     </select>
-  );
-}
-
-export function Alert({ tone = "error", title, children, className }) {
-  const tones = {
-    error: "border-[#efc8c4] bg-[#fbeceb] text-[#7d2d2d]",
-    success: "border-[#c8dfd1] bg-[#eef6f0] text-[#275843]",
-    info: "border-[#bfdbe8] bg-mist/70 text-[#234e63]",
-    warning: "border-[#dfc99f] bg-sand/40 text-[#5e4b2a]",
-  };
-  return (
-    <div
-      role={tone === "error" ? "alert" : "status"}
-      className={classNames(
-        "rounded-md border px-4 py-3 text-sm leading-6",
-        tones[tone] || tones.info,
-        className,
-      )}
-    >
-      {title ? <p className="font-semibold">{title}</p> : null}
-      {children}
-    </div>
   );
 }
 
@@ -200,14 +180,14 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 
 export function PageHeader({ eyebrow, title, description, actions }) {
   return (
-    <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="page-heading flex flex-col gap-5 pb-7 sm:flex-row sm:items-end sm:justify-between">
       <div>
         {eyebrow ? (
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-steel">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        <h1 className="text-3xl font-semibold tracking-[-0.04em] text-ink sm:text-4xl">
           {title}
         </h1>
         {description ? (
@@ -228,7 +208,7 @@ export function StatCard({ label, value, hint, tone = "neutral", icon: Icon }) {
   };
   const isDark = tone === "dark";
   return (
-    <section className={classNames("rounded-lg border p-5", tones[tone] || tones.neutral)}>
+    <section className={classNames("ui-stat relative overflow-hidden rounded-2xl border p-6", tones[tone] || tones.neutral)}>
       <div className="flex items-start justify-between gap-3">
         <p
           className={classNames(
@@ -268,28 +248,54 @@ export function StatCard({ label, value, hint, tone = "neutral", icon: Icon }) {
 
 export function Modal({ open, onClose, title, description, children, footer, size = "md" }) {
   const titleId = useId();
+  const descriptionId = useId();
   const panelRef = useRef(null);
+  const overlayRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   const lenisRef = useSmoothScroll();
 
   useEffect(() => {
     if (!open) return undefined;
+    const previousFocus = document.activeElement;
     lenisRef?.current?.stop();
 
     function onKeyDown(event) {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape") closeRef.current?.();
+      if (event.key !== "Tab") return;
+      const focusable = [...(panelRef.current?.querySelectorAll('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') || [])].filter((element) => element.getClientRects().length);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first) {
+        event.preventDefault();
+        panelRef.current?.focus();
+      } else if (event.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === panelRef.current)) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.setTimeout(() => panelRef.current?.focus(), 0);
+    panelRef.current?.focus();
+    const motion = gsap.matchMedia();
+    motion.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2, clearProps: "opacity" });
+      gsap.fromTo(panelRef.current, { y: 24, scale: 0.97, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.35, ease: "power3.out", clearProps: "transform,opacity" });
+    });
     return () => {
+      motion.revert();
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
       lenisRef?.current?.start();
+      if (previousFocus?.isConnected) previousFocus.focus();
     };
-  }, [open, onClose, lenisRef]);
+  }, [open, lenisRef]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const widths = {
     sm: "max-w-md",
@@ -298,9 +304,10 @@ export function Modal({ open, onClose, title, description, children, footer, siz
     xl: "max-w-5xl",
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-3 backdrop-blur-[2px] sm:p-6"
+      ref={overlayRef}
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm sm:p-6"
       data-lenis-prevent
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
@@ -311,20 +318,21 @@ export function Modal({ open, onClose, title, description, children, footer, siz
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         data-lenis-prevent
         className={classNames(
-          "page-enter flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface-raised shadow-2xl outline-none sm:max-h-[calc(100dvh-3rem)]",
+          "flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-3xl border border-white/70 bg-surface-raised shadow-[0_32px_100px_-24px_#0b163b80] outline-none sm:max-h-[calc(100dvh-3rem)]",
           widths[size] || widths.md,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-6">
           <div>
             <h2 id={titleId} className="text-lg font-semibold text-ink">
               {title}
             </h2>
             {description ? (
-              <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
+              <p id={descriptionId} className="mt-2 text-sm leading-6 text-muted">{description}</p>
             ) : null}
           </div>
           <button
@@ -336,14 +344,15 @@ export function Modal({ open, onClose, title, description, children, footer, siz
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="min-h-0 overflow-y-auto px-5 py-5">{children}</div>
+        <div className="min-h-0 overflow-y-auto px-6 py-6">{children}</div>
         {footer ? (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-canvas/60 px-5 py-4">
+          <div className="flex flex-wrap justify-end gap-3 border-t border-line bg-canvas/60 px-6 py-5">
             {footer}
           </div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -376,10 +385,10 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-sm leading-6 text-muted">
-        Thao tác này sẽ được gửi ngay tới hệ thống. Bạn có thể kiểm tra lại trước khi
-        tiếp tục.
-      </p>
+      <div className="flex items-start gap-3 rounded-2xl bg-mist/60 p-4">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-steel" />
+        <p className="text-sm leading-6 text-muted">Kiểm tra thông tin trước khi xác nhận. Bạn có thể chọn Hủy để quay lại.</p>
+      </div>
     </Modal>
   );
 }

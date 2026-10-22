@@ -170,6 +170,31 @@ class CheckoutTest extends TestCase
         $this->getJson('/api/my/courses')->assertOk()->assertJsonPath('total', 0);
     }
 
+    public function test_student_courses_are_paginated(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $packages = Package::factory()->count(13)->create();
+
+        foreach ($packages as $package) {
+            Enrollment::create([
+                'user_id' => $student->id,
+                'package_id' => $package->id,
+                'enrolled_at' => now(),
+            ]);
+        }
+
+        Sanctum::actingAs($student);
+
+        $this->getJson('/api/my/courses?page=2&per_page=5')
+            ->assertOk()
+            ->assertJsonPath('total', 13)
+            ->assertJsonPath('meta.current_page', 2)
+            ->assertJsonPath('meta.last_page', 3)
+            ->assertJsonPath('meta.total', 13)
+            ->assertJsonPath('meta.per_page', 5)
+            ->assertJsonCount(5, 'data');
+    }
+
     public function test_admin_can_list_orders_and_dashboard_exposes_revenue(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

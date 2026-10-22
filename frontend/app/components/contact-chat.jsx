@@ -24,10 +24,18 @@ export function ContactChat() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-5 right-5 z-[90] sm:bottom-6 sm:right-6">
-      {open ? (
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-[90] flex justify-end px-5 sm:bottom-6 sm:px-6">
+      <div className="pointer-events-auto flex flex-col items-end">
+      <div
+        className={`mb-3 origin-bottom-right overflow-hidden transition-[max-height,opacity,transform] duration-250 ease-out ${
+          open
+            ? "max-h-[520px] translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none max-h-0 translate-y-3 scale-95 opacity-0"
+        }`}
+        aria-hidden={!open}
+      >
         <div
-          className="chat-panel-enter mb-3 w-[min(86vw,320px)] overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-[0_24px_70px_-28px_rgba(20,35,44,0.55)]"
+          className="w-[min(86vw,320px)] overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-[0_24px_70px_-28px_rgba(20,35,44,0.55)]"
           role="dialog"
           aria-label="Chọn kênh liên hệ"
         >
@@ -41,6 +49,7 @@ export function ContactChat() {
             <button
               type="button"
               onClick={() => setOpen(false)}
+              tabIndex={open ? 0 : -1}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
               aria-label="Đóng lựa chọn liên hệ"
             >
@@ -55,7 +64,7 @@ export function ContactChat() {
                 target="_blank"
                 rel="noreferrer"
                 style={{ "--chat-delay": `${index * 55}ms` }}
-                className="chat-channel-enter group flex items-center gap-3 rounded-xl border border-line px-3 py-3 transition-[background-color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-steel/50 hover:bg-mist/40"
+                className={`${open ? "chat-channel-enter" : ""} group flex items-center gap-3 rounded-xl border border-line px-3 py-3 transition-[background-color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-steel/50 hover:bg-mist/40`}
               >
                 <span
                   className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white transition-transform duration-200 group-hover:scale-105 ${channel.color}`}
@@ -71,17 +80,18 @@ export function ContactChat() {
             ))}
           </div>
         </div>
-      ) : null}
+      </div>
 
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`chat-fab ml-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-ink text-powder shadow-[0_16px_36px_-16px_rgba(20,35,44,0.65)] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#243b47] focus-visible:outline-offset-4 ${open ? "chat-fab-open" : ""}`}
+        className={`chat-fab inline-flex h-14 w-14 items-center justify-center rounded-full bg-ink text-powder shadow-[0_16px_36px_-16px_rgba(20,35,44,0.65)] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[#243b47] focus-visible:outline-offset-4 ${open ? "chat-fab-open" : ""}`}
         aria-label={open ? "Đóng hỗ trợ" : "Mở hỗ trợ"}
         aria-expanded={open}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
       </button>
+      </div>
     </div>
   );
 }

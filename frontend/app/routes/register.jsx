@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router";
 import { ArrowRight, UserPlus } from "lucide-react";
 import { useAuth } from "../context/auth";
 import { errorMessage } from "../lib/api";
+import { useNotifications } from "../components/notifications";
 import { Logo } from "../components/logo";
-import { Alert, Button, Card, Field, Input, Spinner } from "../components/ui";
+import { Button, Card, Field, Input, Spinner } from "../components/ui";
 
 export function meta() {
   return [{ title: "Đăng ký — ExamPlatform" }];
@@ -12,6 +13,7 @@ export function meta() {
 
 export default function Register() {
   const { register } = useAuth();
+  const notifications = useNotifications();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
@@ -19,7 +21,6 @@ export default function Register() {
     password: "",
     password_confirmation: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function update(field, value) {
@@ -28,13 +29,12 @@ export default function Register() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
     setLoading(true);
     try {
       await register(form.name, form.email, form.password, form.password_confirmation);
       navigate("/exams", { replace: true });
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Đăng ký không thành công" });
     } finally {
       setLoading(false);
     }
@@ -57,11 +57,6 @@ export default function Register() {
             Tài khoản công khai luôn được tạo với vai trò học viên.
           </p>
 
-          {error ? (
-            <Alert className="mt-5" tone="error">
-              {error}
-            </Alert>
-          ) : null}
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <Field label="Họ tên" htmlFor="name" required>

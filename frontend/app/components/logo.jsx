@@ -5,17 +5,17 @@ export function Logo({ compact = false, light = false }) {
   return (
     <Link
       to="/"
-      className="inline-flex items-center gap-2.5 rounded-md focus-visible:outline-none"
+      className="inline-flex shrink-0 items-center gap-2.5 rounded-xl"
       aria-label="ExamPlatform - trang chủ"
     >
       <span
         className={
           light
-            ? "inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 text-white"
-            : "inline-flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-powder"
+            ? "inline-flex h-10 w-10 items-center justify-center rounded-xl bg-steel text-white shadow-md"
+            : "inline-flex h-10 w-10 items-center justify-center rounded-xl bg-steel text-white shadow-[0_4px_12px_-3px_#3659e350]"
         }
       >
-        <BookOpenCheck className="h-4 w-4" />
+        <BookOpenCheck className="h-5 w-5" strokeWidth={1.7} />
       </span>
       <span className="leading-none">
         <span
@@ -32,7 +32,7 @@ export function Logo({ compact = false, light = false }) {
             className={
               light
                 ? "mt-1 block text-[10px] font-medium uppercase tracking-[0.18em] text-white/60"
-                : "mt-1 block text-[10px] font-medium uppercase tracking-[0.18em] text-muted"
+                : "mt-1 hidden text-[9px] font-medium uppercase tracking-[0.18em] text-muted sm:block"
             }
           >
             IELTS practice studio

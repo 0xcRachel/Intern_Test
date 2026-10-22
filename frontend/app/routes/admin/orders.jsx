@@ -11,9 +11,9 @@ import {
 import { api, errorMessage } from "../../lib/api";
 import { usePolling } from "../../lib/use-polling";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import { Pagination } from "../../components/pagination";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -38,17 +38,16 @@ function StatusBadge({ status }) {
 
 export default function AdminOrders() {
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [orders, setOrders] = useState([]);
   const [meta, setMeta] = useState(null);
   const [summary, setSummary] = useState(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   async function load(query = search, filter = status, page = 1, { silent = false } = {}) {
     if (!silent) setLoading(true);
-    setError("");
     try {
       const params = new URLSearchParams({ per_page: "15", page: String(page) });
       if (query.trim()) params.set("search", query.trim());
@@ -58,7 +57,7 @@ export default function AdminOrders() {
       setMeta(data?.meta || null);
       setSummary(data?.summary || null);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được đơn hàng" });
     } finally {
       setLoading(false);
     }
@@ -88,11 +87,6 @@ export default function AdminOrders() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được đơn hàng">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <Card className="flex items-center gap-3 p-4">

@@ -1,396 +1,124 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  FileText,
-  Headphones,
-  Layers3,
-  ListChecks,
-  PlayCircle,
-  Sparkles,
-} from "lucide-react";
+import gsap from "gsap";
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronRight, Headphones, Layers3, Play, Sparkles, Target } from "lucide-react";
 import { api, errorMessage } from "../lib/api";
-import { formatPrice } from "../lib/format";
-import { Alert, Badge, Button, Card } from "../components/ui";
-import { useRouteMotion } from "../context/route-motion";
+import { Badge, Button, EmptyState, Skeleton } from "../components/ui";
+import { PackageCard } from "../components/package-card";
+import { Reveal } from "../components/reveal";
+import { useNotifications } from "../components/notifications";
 
 export function meta() {
-  return [
-    { title: "ExamPlatform — Luyện IELTS rõ từng bước" },
-    {
-      name: "description",
-      content:
-        "ExamPlatform giúp bạn chọn tài liệu IELTS, làm đề có thời gian và xem lại kết quả rõ ràng.",
-    },
-  ];
+  return [{ title: "ExamPlatform — Bắt đầu chương tiếp theo" }, { name: "description", content: "Không gian luyện IELTS của bạn. Khám phá tài liệu, luyện đề và theo dõi từng bước tiến bộ cùng ExamPlatform." }];
 }
 
+const steps = [
+  { icon: BookOpen, title: "Tìm đúng tài liệu", text: "Khám phá nội dung theo trình độ. Xem trước tài liệu để chọn khóa học phù hợp với bạn.", color: "bg-mist text-steel" },
+  { icon: Headphones, title: "Luyện tập có trọng tâm", text: "Kết hợp tài liệu PDF, audio và đề luyện tập. Tập trung vào kỹ năng bạn muốn cải thiện.", color: "bg-[#e6f5ee] text-success" },
+  { icon: Target, title: "Hiểu từng bước tiến", text: "Xem kết quả, đối chiếu đáp án và quay lại những câu cần luyện thêm.", color: "bg-[#fff3da] text-[#986818]" },
+];
+
 export default function Home() {
-  const routeAnimate = useRouteMotion();
+  const notifications = useNotifications();
   const [packages, setPackages] = useState([]);
-  const [packagesError, setPackagesError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const heroRef = useRef(null);
 
   useEffect(() => {
     let active = true;
     api("/packages")
-      .then((data) => {
-        if (active) setPackages(data?.data || []);
-      })
-      .catch((error) => {
-        if (active) setPackagesError(errorMessage(error));
-      });
-    return () => {
-      active = false;
-    };
+      .then((data) => { if (active) setPackages(data?.data || []); })
+      .catch((error) => { if (active) notifications.warning(errorMessage(error), { title: "Chưa tải được khóa học" }); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
-  const featured = packages[0];
-  const units = featured?.units || [];
-  const documents = units.flatMap((unit) => unit.documents || []);
+  useEffect(() => {
+    const motion = gsap.matchMedia();
+    motion.add("(prefers-reduced-motion: no-preference)", () => {
+      const context = gsap.context(() => {
+        gsap.fromTo("[data-hero]", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.85, stagger: 0.1, ease: "power3.out", clearProps: "transform,opacity" });
+        gsap.fromTo("[data-study-card]", { y: 35, rotate: 3, opacity: 0 }, { y: 0, rotate: 0, opacity: 1, duration: 1, delay: 0.2, ease: "power3.out", clearProps: "transform,opacity" });
+      }, heroRef);
+      return () => context.revert();
+    });
+    return () => motion.revert();
+  }, []);
 
   return (
-    <div className="bg-canvas">
-      <div className="flex-1">
-        <section className="relative overflow-hidden border-b border-line">
-          <div className="pointer-events-none absolute -right-24 top-12 h-72 w-72 rounded-full bg-mist/80 blur-3xl" />
-          <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-sand/30 blur-3xl" />
-          <div className="relative mx-auto grid max-w-[1216px] gap-10 px-5 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
-            <div className={routeAnimate ? "page-enter" : undefined}>
-              <Badge tone="blue" className="mb-5">
-                <Sparkles className="mr-1.5 h-3 w-3" />
-                Học chủ động, không đoán mò
-              </Badge>
-              <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-ink sm:text-5xl lg:text-[57px]">
-                Luyện IELTS, <span className="text-steel">rõ từng bước.</span>
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
-                Chọn tài liệu phù hợp, làm đề trong thời gian thật và xem lại từng câu
-                trả lời. Một không gian học gọn gàng để bạn tiến bộ có chủ đích.
-              </p>
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <Link to="/exams">
-                  <Button size="lg">
-                    Xem đề luyện tập
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link to="/packages">
-                  <Button size="lg" variant="secondary">
-                    Khám phá tài liệu
-                  </Button>
-                </Link>
-              </div>
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-muted">
-                <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-steel" />
-                  Đề có thời gian
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-steel" />
-                  Lưu câu trả lời tự động
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-steel" />
-                  Xem lại kết quả
-                </span>
-              </div>
+    <div className="bg-white">
+      <section ref={heroRef} className="relative isolate overflow-hidden border-b border-line">
+        <div className="studio-grid absolute inset-0 -z-10 [mask-image:linear-gradient(to_right,transparent,black)]" />
+        <div className="mx-auto grid max-w-[1320px] gap-14 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:min-h-[700px] lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-12 lg:py-24">
+          <div>
+            <div data-hero className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-medium text-muted">
+              <span className="h-2 w-2 rounded-full bg-steel" /> Không gian học tập thế hệ mới <ArrowUpRight className="h-3.5 w-3.5 text-steel" />
             </div>
-
-            <div className={routeAnimate ? "relative page-enter" : "relative"}>
-              <div className="overflow-hidden rounded-xl border border-line bg-surface-raised p-2 shadow-[0_20px_60px_-30px_rgba(20,35,44,0.35)]">
-                <img
-                  src="/study-desk-blue.png"
-                  alt="Bàn học với sách bài tập, bút chì và tai nghe trong ánh sáng buổi sáng"
-                  className="aspect-[4/3] w-full rounded-lg object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-5 left-4 right-4 rounded-lg border border-line bg-surface-raised/95 p-3 shadow-lg backdrop-blur sm:left-8 sm:right-8">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-mist text-steel">
-                      <Layers3 className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold text-ink">Lộ trình 3 bước</p>
-                      <p className="text-[11px] text-muted">Chọn tài liệu → Làm đề → Xem lại</p>
-                    </div>
-                  </div>
-                  <span className="hidden items-center gap-1 text-[11px] font-medium text-steel sm:inline-flex">
-                    Bắt đầu <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
+            <h1 data-hero className="max-w-[650px] text-[clamp(2.8rem,5.2vw,4.7rem)] font-semibold leading-[1.08] tracking-[-0.065em] text-ink">
+              Mục tiêu lớn.<br />Bắt đầu từ<br /><span className="relative text-steel">một bước nhỏ.<svg className="absolute -bottom-3 left-0 w-full text-powder" viewBox="0 0 400 16" fill="none" aria-hidden="true"><path d="M3 12C95 1 241 1 396 8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" /></svg></span>
+            </h1>
+            <p data-hero className="mt-9 max-w-md text-base leading-8 text-muted">IELTS không chỉ là một con số. Đó là cánh cửa tới chương tiếp theo của bạn. Cùng học, luyện tập và tiến bộ mỗi ngày.</p>
+            <div data-hero className="mt-8 flex flex-wrap gap-3">
+              <Link to="/packages"><Button size="lg" className="min-h-13 px-6">Khám phá khóa học <ArrowUpRight className="h-4 w-4" /></Button></Link>
+              <Link to="/exams"><Button size="lg" variant="secondary" className="min-h-13 px-6"><Play className="h-4 w-4" /> Luyện đề ngay</Button></Link>
+            </div>
+            <div data-hero className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
+              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-success" /> Học theo nhịp của bạn</span>
+              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-success" /> Lưu tiến độ tự động</span>
             </div>
           </div>
-        </section>
-
-        <section id="process" className="border-b border-line bg-surface-sunken/35">
-          <div className="mx-auto max-w-[1216px] px-5 py-12 sm:px-6 sm:py-16">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-steel">
-                  Một quy trình, ba bước
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                  Ít lựa chọn hơn, tập trung hơn.
-                </h2>
+          <div className="relative mx-auto w-full max-w-[530px] px-1 sm:px-5">
+            <div className="studio-orbit pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[410px] w-[410px] -translate-x-1/2 -translate-y-1/2" />
+            <div data-study-card className="overflow-hidden rounded-[28px] border border-line bg-white shadow-[0_30px_90px_-30px_#29488b55]">
+              <div className="flex items-center justify-between border-b border-line px-6 py-5">
+                <span className="flex items-center gap-2 text-sm font-semibold"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-steel text-white"><Layers3 className="h-4 w-4" /></span> Góc học tập</span>
+                <span className="text-[10px] font-medium uppercase tracking-widest text-muted">Giao diện minh họa</span>
               </div>
-              <p className="max-w-md text-sm leading-6 text-muted">
-                Mỗi bước đều có mục đích rõ ràng, để bạn biết mình đang học gì và cần
-                làm gì tiếp theo.
-              </p>
-            </div>
-            <div className="mt-8 grid overflow-hidden rounded-lg border border-line md:grid-cols-3">
-              {[
-                {
-                  icon: BookOpen,
-                  number: "01",
-                  title: "Chọn tài liệu",
-                  text: "Đọc mô tả unit, xem số trang và thử preview trước khi bắt đầu.",
-                },
-                {
-                  icon: Clock3,
-                  number: "02",
-                  title: "Làm đề có thời gian",
-                  text: "Làm bài theo đồng hồ, lưu câu trả lời và biết trạng thái từng câu.",
-                },
-                {
-                  icon: ListChecks,
-                  number: "03",
-                  title: "Xem lại kết quả",
-                  text: "Xem điểm, tỷ lệ đạt và những câu cần quay lại để cải thiện.",
-                },
-              ].map((step) => {
-                const Icon = step.icon;
-                return (
-                  <div
-                    key={step.number}
-                    className="border-b border-line p-6 last:border-b-0 md:border-b-0 md:border-r md:p-8 md:last:border-r-0"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-mist text-steel">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="text-xs font-semibold tracking-[0.16em] text-muted/60">
-                        {step.number}
-                      </span>
-                    </div>
-                    <h3 className="mt-5 text-base font-semibold text-ink">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted">{step.text}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-line bg-canvas">
-          <div className="mx-auto max-w-[1216px] px-5 py-12 sm:px-6 sm:py-16">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-steel">
-                  Tài liệu đang có
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                  Gói học thật, nội dung rõ ràng.
-                </h2>
-              </div>
-              <Link
-                to="/packages"
-                className="inline-flex items-center gap-1 text-sm font-medium text-steel hover:text-ink"
-              >
-                Xem tất cả tài liệu <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            {packagesError ? (
-              <Alert className="mt-6" tone="warning" title="Chưa tải được gói học">
-                {packagesError}
-              </Alert>
-            ) : null}
-
-            {featured ? (
-              <Card className="mt-6 overflow-hidden">
-                <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
-                  <div className="p-6 sm:p-8">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge tone="sand">IELTS</Badge>
-                      <Badge tone="neutral">{units.length} units</Badge>
-                      <Badge tone="neutral">{documents.length} tài liệu</Badge>
-                    </div>
-                    <h3 className="mt-4 text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-                      {featured.title}
-                    </h3>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-                      {featured.description}
-                    </p>
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      {units.slice(0, 4).map((unit) => (
-                        <div
-                          key={unit.id}
-                          className="rounded-md border border-line bg-canvas/50 px-3 py-2.5"
-                        >
-                          <p className="text-xs font-medium text-ink">{unit.title}</p>
-                          <p className="mt-1 text-[11px] text-muted">
-                            {(unit.documents || []).length} tài liệu
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex flex-col justify-between border-t border-line bg-mist/35 p-6 sm:p-8 lg:border-l lg:border-t-0">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-steel">
-                        Học phí
-                      </p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-                        {formatPrice(featured.price)}
-                      </p>
-                      <p className="mt-2 text-xs leading-5 text-muted">
-                        Thanh toán demo an toàn. Khóa học và tài liệu được kích hoạt ngay sau khi
-                        xác nhận.
-                      </p>
-                    </div>
-                    <Link to={`/packages/${featured.id}`} className="mt-6">
-                      <Button className="w-full">
-                        Xem nội dung gói
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
+              <div className="p-5 sm:p-6">
+                <div className="relative overflow-hidden rounded-2xl bg-ink p-6 text-white">
+                  <div className="absolute -right-8 -top-8 h-44 w-44 rounded-full border-[28px] border-white/5" />
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-powder">One step closer</p>
+                  <h2 className="mt-3 text-2xl font-semibold leading-tight">Sẵn sàng cho<br />bước tiến tiếp theo?</h2>
+                  <Link to="/exams" className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-powder">Bắt đầu luyện tập <ArrowRight className="h-3.5 w-3.5" /></Link>
+                  <Headphones className="absolute bottom-5 right-5 h-16 w-16 rotate-12 text-powder/40" strokeWidth={1} />
                 </div>
-              </Card>
-            ) : !packagesError ? (
-              <div className="mt-6 h-44 animate-pulse rounded-lg border border-line bg-surface-raised" />
-            ) : null}
-          </div>
-        </section>
-
-        <section className="border-b border-line bg-surface-sunken/35">
-          <div className="mx-auto grid max-w-[1216px] gap-8 px-5 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-steel">
-                Trong lúc làm bài
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                Không bỏ sót câu nào.
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Câu đã trả lời được đánh dấu, trạng thái lưu hiển thị rõ và đồng hồ luôn
-                ở trong tầm mắt. Đây là minh họa giao diện, không phải dữ liệu tài khoản.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <Badge tone="blue">Câu 1/2</Badge>
-                <Badge tone="success">Đã lưu</Badge>
-                <Badge tone="sand">Còn 42:18</Badge>
+                <div className="mb-3 mt-6 flex items-center justify-between"><h3 className="text-xs font-semibold">Không gian cho mọi kỹ năng</h3><span className="text-[10px] text-muted">IELTS studio</span></div>
+                {[{ title: "Listening practice", subtitle: "Lắng nghe. Hiểu sâu hơn.", icon: Headphones, color: "bg-mist text-steel" }, { title: "Reading essentials", subtitle: "Đọc chủ động, nắm ý chính.", icon: BookOpen, color: "bg-[#e6f5ee] text-success" }].map(({ title, subtitle, icon: Icon, color }) => (
+                  <Link to="/exams" key={title} className="mt-2 flex items-center gap-3 rounded-xl border border-line p-3 transition-colors hover:bg-canvas">
+                    <span className={"flex h-11 w-11 items-center justify-center rounded-xl " + color}><Icon className="h-5 w-5" /></span>
+                    <span className="flex-1"><span className="block text-xs font-semibold">{title}</span><span className="mt-1 block text-[11px] text-muted">{subtitle}</span></span><ChevronRight className="h-4 w-4 text-muted" />
+                  </Link>
+                ))}
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card className="p-4">
-                <div className="flex items-center justify-between text-[11px] text-muted">
-                  <span>Câu hỏi minh họa</span>
-                  <span>10 điểm</span>
-                </div>
-                <p className="mt-3 text-sm font-medium leading-6 text-ink">
-                  What is the primary objective of Section 1 in IELTS Reading?
-                </p>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center gap-2 rounded-md border border-steel bg-mist/70 px-3 py-2.5 text-xs text-ink">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full border border-steel bg-surface-raised">
-                      <Check className="h-3 w-3 text-steel" />
-                    </span>
-                    Social survival situations
-                  </div>
-                  <div className="flex items-center gap-2 rounded-md border border-line px-3 py-2.5 text-xs text-muted">
-                    <span className="h-4 w-4 rounded-full border border-line" />
-                    Academic lecture analysis
-                  </div>
-                </div>
-              </Card>
-              <Card className="flex flex-col justify-between bg-mist/45 p-4">
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-steel">
-                    Kết quả minh họa
-                  </p>
-                  <p className="mt-3 text-4xl font-semibold tracking-tight text-ink">10/20</p>
-                  <p className="mt-1 text-xs text-muted">50% · Chưa đạt ngưỡng 70%</p>
-                </div>
-                <div className="mt-6 h-2 overflow-hidden rounded-full bg-surface-sunken">
-                  <div className="h-full w-1/2 rounded-full bg-steel" />
-                </div>
-                <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted">
-                  <PlayCircle className="h-3.5 w-3.5 text-steel" />
-                  Xem lại 1 câu cần cải thiện
-                </p>
-              </Card>
+            <div data-study-card className="relative -mt-3 ml-8 flex w-fit items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-lg sm:absolute sm:-bottom-6 sm:-left-1 sm:mt-0 sm:ml-0">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6f5ee] text-success"><Target className="h-5 w-5" /></span>
+              <div><p className="text-xs font-semibold">Tiến bộ theo cách của bạn</p><p className="mt-1 text-[10px] text-muted">Từng bài học. Từng ngày.</p></div>
             </div>
           </div>
-        </section>
-
-        <section id="faq" className="bg-canvas">
-          <div className="mx-auto grid max-w-[1216px] gap-8 px-5 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.65fr_1.35fr]">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-steel">
-                Hỏi đáp
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                Trước khi bắt đầu.
-              </h2>
-              <p className="mt-3 max-w-sm text-sm leading-6 text-muted">
-                Những điều cần biết về tài liệu, đề luyện tập và cách hệ thống lưu bài.
-              </p>
-            </div>
-            <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface-raised">
-              {[
-                {
-                  q: "Tôi có cần thanh toán để xem tài liệu không?",
-                  a: "Bạn có thể xem trước một số trang miễn phí. Để mở toàn bộ nội dung hiện có, hãy thêm gói học vào giỏ và hoàn tất thanh toán demo; khóa học sẽ được ghi danh ngay mà không phát sinh chi phí thật.",
-                },
-                {
-                  q: "Preview tài liệu hoạt động như thế nào?",
-                  a: "Preview tạo một URL có chữ ký, giới hạn thời gian và gắn với người dùng đang đăng nhập. Hệ thống hiện trả metadata và xác nhận quyền truy cập.",
-                },
-                {
-                  q: "Kết quả bài làm có được lưu không?",
-                  a: "Câu trả lời được lưu tạm trong lúc làm bài. Khi nộp, hệ thống chấm điểm ở server và khóa bài làm đã hoàn thành.",
-                },
-              ].map((item) => (
-                <details key={item.q} className="group px-5 py-4 sm:px-6">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-ink">
-                    {item.q}
-                    <ChevronRight className="h-4 w-4 shrink-0 text-steel transition-transform group-open:rotate-90" />
-                  </summary>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{item.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-line bg-ink">
-          <div className="mx-auto flex max-w-[1216px] flex-col gap-6 px-5 py-10 sm:px-6 sm:py-12 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-powder">
-                Sẵn sàng cho lượt luyện tiếp theo
-              </p>
-              <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Vào đề, làm bài và biết mình cần cải thiện điều gì.
-              </h2>
-            </div>
-            <Link to="/exams" className="shrink-0">
-              <Button size="lg" variant="primary">
-                Vào đề luyện tập
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </section>
-      </div>
+        </div>
+        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 border-t border-line px-5 py-5 text-[11px] font-medium uppercase tracking-[0.15em] text-muted sm:px-8"><span>Designed for your next chapter</span><div className="flex gap-6"><span>Learn.</span><span>Practice.</span><span className="text-steel">Grow.</span></div><a href="#process" className="flex items-center gap-2">Khám phá <ArrowDown className="h-3.5 w-3.5" /></a></div>
+      </section>
+      <section id="process" className="scroll-mt-24 bg-canvas py-16 sm:py-24">
+        <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
+          <Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-steel">01 / Cách bạn tiến bộ</p><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Mọi thứ bạn cần.<br />Trong một không gian.</h2></div><p className="max-w-sm text-sm leading-7 text-muted">Một hành trình rõ ràng, từ buổi học đầu tiên đến những lần tự tin chinh phục đề thi.</p></Reveal>
+          <div className="grid gap-5 md:grid-cols-3">{steps.map(({ icon: Icon, title, text, color }, index) => <Reveal key={title} delay={index * 0.08} className="group rounded-3xl border border-line bg-white p-7 transition-shadow hover:shadow-lg"><div className="flex items-center justify-between"><span className={"flex h-12 w-12 items-center justify-center rounded-2xl " + color}><Icon className="h-6 w-6" /></span><span className="text-sm text-muted/50">0{index + 1}</span></div><h3 className="mt-7 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-7 text-muted">{text}</p></Reveal>)}</div>
+        </div>
+      </section>
+      <section className="py-16 sm:py-24"><div className="mx-auto max-w-[1320px] px-5 sm:px-8">
+        <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-steel">02 / Thư viện học tập</p><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Tìm cảm hứng.<br />Bắt đầu học.</h2></div><Link to="/packages" className="inline-flex items-center gap-2 text-sm font-semibold text-steel">Tất cả khóa học <ArrowUpRight className="h-4 w-4" /></Link></Reveal>
+        {loading ? <div className="grid gap-6 md:grid-cols-3">{[0, 1, 2].map((item) => <Skeleton key={item} className="h-96 rounded-3xl" />)}</div> : packages.length ? <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{packages.slice(0, 3).map((item, index) => <Reveal key={item.id} delay={index * 0.08}><PackageCard packageItem={item} /></Reveal>)}</div> : <EmptyState icon={BookOpen} title="Thư viện đang cập nhật" description="Các khóa học sẽ xuất hiện tại đây khi sẵn sàng." />}
+      </div></section>
+      <section id="faq" className="scroll-mt-24 border-t border-line bg-canvas py-16 sm:py-24"><div className="mx-auto grid max-w-[1320px] gap-10 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <Reveal><Badge tone="blue"><Sparkles className="mr-1.5 h-3 w-3" /> Giải đáp cho bạn</Badge><h2 className="mt-5 text-3xl font-semibold sm:text-4xl">Bắt đầu với<br />sự rõ ràng.</h2><p className="mt-4 max-w-sm text-sm leading-7 text-muted">Một vài điều hữu ích trước khi bước vào hành trình học tập của bạn.</p></Reveal>
+        <Reveal className="space-y-3">{[
+          ["Tôi có thể xem trước tài liệu không?", "Có. Bạn có thể xem trước các trang được mở miễn phí trong từng khóa học để lựa chọn nội dung phù hợp trước khi đăng ký."],
+          ["Thanh toán hoạt động như thế nào?", "Dự án đang sử dụng thanh toán demo. Sau khi xác nhận, khóa học được thêm vào thư viện của bạn; không phát sinh giao dịch tiền thật."],
+          ["Nếu tôi rời trang khi đang làm bài?", "Câu trả lời được tự động lưu trong lúc làm bài. Khi quay lại, bạn có thể tiếp tục trong thời gian còn lại của lượt làm bài."],
+          ["Tôi xem kết quả ở đâu?", "Sau khi nộp bài, bạn sẽ được chuyển đến trang kết quả để xem điểm và đối chiếu đáp án."],
+        ].map(([question, answer]) => <details key={question} className="group rounded-2xl border border-line bg-white p-5 sm:p-6"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">{question}<ChevronRight className="h-4 w-4 shrink-0 text-steel transition-transform group-open:rotate-90" /></summary><p className="mt-4 text-sm leading-7 text-muted">{answer}</p></details>)}</Reveal>
+      </div></section>
+      <section className="px-5 py-12 sm:px-8 sm:py-16"><Reveal className="relative mx-auto flex max-w-[1256px] flex-col items-start justify-between gap-8 overflow-hidden rounded-[32px] bg-ink p-8 text-white sm:p-12 lg:flex-row lg:items-center"><div className="pointer-events-none absolute -right-20 -top-40 h-[400px] w-[400px] rounded-full border-[60px] border-white/[0.03]" /><div className="relative"><p className="text-xs font-medium uppercase tracking-[0.2em] text-powder">Your next chapter</p><h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Một ngày nào đó.<br />Hay bắt đầu ngay hôm nay?</h2></div><Link to="/exams" className="relative"><Button size="lg" className="min-h-14 px-7">Bắt đầu luyện tập <ArrowUpRight className="h-5 w-5" /></Button></Link></Reveal></section>
     </div>
   );
 }

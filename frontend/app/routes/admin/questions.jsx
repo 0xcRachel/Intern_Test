@@ -16,9 +16,9 @@ import {
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
 import { AiQuestionAssistant } from "../../components/ai-question-assistant";
+import { useNotifications } from "../../components/notifications";
 import { Reveal } from "../../components/reveal";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -35,17 +35,16 @@ export function meta() {
 export default function AdminQuestions() {
   const { examId } = useParams();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [exam, setExam] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
 
   async function load() {
     setLoading(true);
-    setError("");
     try {
       const [examData, questionsData] = await Promise.all([
         api(`/admin/exams/${examId}`, { token }),
@@ -54,7 +53,7 @@ export default function AdminQuestions() {
       setExam(examData?.data || examData);
       setQuestions(questionsData?.data || []);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được câu hỏi" });
     } finally {
       setLoading(false);
     }
@@ -67,13 +66,12 @@ export default function AdminQuestions() {
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
-    setError("");
     try {
       await api(`/admin/questions/${deleteTarget.id}`, { method: "DELETE", token });
       setDeleteTarget(null);
       await load();
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không thể xóa câu hỏi" });
     } finally {
       setDeleting(false);
     }
@@ -139,11 +137,6 @@ export default function AdminQuestions() {
         />
       </div>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được câu hỏi">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <Card className="flex items-center gap-3 p-4">

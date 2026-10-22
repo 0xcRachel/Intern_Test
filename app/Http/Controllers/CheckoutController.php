@@ -69,12 +69,13 @@ class CheckoutController extends Controller
 
     public function myCourses(Request $request): JsonResponse
     {
+        $perPage = min(max((int) $request->query('per_page', 6), 1), 100);
         $enrollments = Enrollment::with(['package.units.documents', 'order'])
             ->where('user_id', $request->user()->id)
             ->latest('enrolled_at')
-            ->get();
+            ->paginate($perPage);
 
-        $data = $enrollments->map(function (Enrollment $enrollment) {
+        $data = $enrollments->getCollection()->map(function (Enrollment $enrollment) {
             $package = $enrollment->package;
 
             if (! $package) {
@@ -92,7 +93,15 @@ class CheckoutController extends Controller
 
         return response()->json([
             'data' => $data,
-            'total' => $data->count(),
+            'total' => $enrollments->total(),
+            'meta' => [
+                'current_page' => $enrollments->currentPage(),
+                'last_page' => $enrollments->lastPage(),
+                'from' => $enrollments->firstItem(),
+                'to' => $enrollments->lastItem(),
+                'total' => $enrollments->total(),
+                'per_page' => $enrollments->perPage(),
+            ],
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Attempt;
 use App\Models\Exam;
+use App\Notifications\AttemptCompletedNotification;
 use App\Services\ExamService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -64,6 +65,12 @@ class AttemptController extends Controller
         $answers = $validated['answers'] ?? [];
 
         $result = $this->examService->gradeAttempt($attempt, $answers);
+        $request->user()->notify(new AttemptCompletedNotification(
+            $attempt->id,
+            $attempt->exam?->title ?? Exam::find($attempt->exam_id)?->title ?? 'Đề luyện tập',
+            (float) $result['percentage'],
+            (bool) $result['is_passed'],
+        ));
 
         return response()->json($result);
     }

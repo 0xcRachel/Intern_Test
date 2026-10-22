@@ -1,4 +1,14 @@
-import { FileText, Headphones, LockKeyhole, ShieldCheck } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Headphones,
+  LockKeyhole,
+  Minus,
+  Plus,
+  ShieldCheck,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Modal, Badge, Button } from "./ui";
 import { formatDate } from "../lib/format";
 
@@ -59,7 +69,16 @@ function PreviewPage({ page, index, isAudio }) {
   );
 }
 
-export function DocumentPreviewModal({ open, onClose, document, preview }) {
+export function DocumentPreviewModal({ open, onClose, document, preview, onUnlock }) {
+  const [activePage, setActivePage] = useState(0);
+  const [zoom, setZoom] = useState(100);
+
+  useEffect(() => {
+    if (!open) return;
+    setActivePage(0);
+    setZoom(100);
+  }, [document?.id, open]);
+
   if (!document || !preview) return null;
 
   const isAudio = document.type === "audio";
@@ -69,6 +88,13 @@ export function DocumentPreviewModal({ open, onClose, document, preview }) {
   const lockedPages = owned
     ? 0
     : preview.locked_pages ?? Math.max(0, (preview.total_pages || 0) - shownPages);
+
+  const currentPage = pages[activePage];
+  const canNavigate = pages.length > 1;
+
+  function changePage(nextPage) {
+    setActivePage(Math.min(Math.max(nextPage, 0), Math.max(pages.length - 1, 0)));
+  }
 
   return (
     <Modal
@@ -94,6 +120,12 @@ export function DocumentPreviewModal({ open, onClose, document, preview }) {
           <Button variant="secondary" onClick={onClose}>
             Đóng
           </Button>
+          {!owned && lockedPages > 0 && onUnlock ? (
+            <Button onClick={onUnlock}>
+              Mở khóa toàn bộ
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          ) : null}
         </>
       }
     >
@@ -150,15 +182,62 @@ export function DocumentPreviewModal({ open, onClose, document, preview }) {
         ) : null}
 
         {shownPages > 0 ? (
-          <div className="space-y-4">
-            {pages.map((page, index) => (
-              <PreviewPage
-                key={`${page.heading}-${index}`}
-                page={page}
-                index={index}
-                isAudio={isAudio}
-              />
-            ))}
+          <div className="rounded-lg border border-line bg-surface-sunken/45 p-3 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => changePage(activePage - 1)}
+                  disabled={!canNavigate || activePage === 0}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface-raised text-muted transition-colors hover:border-steel/50 hover:text-ink disabled:opacity-40"
+                  aria-label="Trang trước"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="min-w-24 text-center text-xs font-semibold text-ink">
+                  Trang {activePage + 1} / {shownPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => changePage(activePage + 1)}
+                  disabled={!canNavigate || activePage === shownPages - 1}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface-raised text-muted transition-colors hover:border-steel/50 hover:text-ink disabled:opacity-40"
+                  aria-label="Trang sau"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {!isAudio ? (
+                <div className="flex items-center gap-1.5 rounded-md border border-line bg-surface-raised p-1">
+                  <button
+                    type="button"
+                    onClick={() => setZoom((value) => Math.max(85, value - 10))}
+                    disabled={zoom <= 85}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded text-muted hover:bg-mist hover:text-ink disabled:opacity-40"
+                    aria-label="Thu nhỏ nội dung"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="min-w-12 text-center text-[11px] font-semibold text-muted">
+                    {zoom}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoom((value) => Math.min(125, value + 10))}
+                    disabled={zoom >= 125}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded text-muted hover:bg-mist hover:text-ink disabled:opacity-40"
+                    aria-label="Phóng to nội dung"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <div style={{ fontSize: `${zoom}%` }}>
+              <PreviewPage page={currentPage} index={activePage} isAudio={isAudio} />
+            </div>
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-line bg-surface-raised/70 p-6 text-center">

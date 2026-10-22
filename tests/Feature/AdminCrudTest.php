@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Document;
 use App\Models\Exam;
 use App\Models\Option;
+use App\Models\Package;
 use App\Models\Question;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +17,7 @@ class AdminCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $student;
 
     protected function setUp(): void
@@ -225,5 +228,64 @@ class AdminCrudTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['exam_id', 'question_text', 'options']);
+    }
+
+    // ── Package catalogue CRUD ──────────────────────────────
+
+    public function test_admin_can_create_and_update_package(): void
+    {
+        Sanctum::actingAs($this->admin);
+
+        $response = $this->postJson('/api/admin/packages', [
+            'title' => 'IELTS Speaking Fluency Lab',
+            'description' => 'A focused speaking course.',
+            'level' => 'Intermediate',
+            'duration_hours' => 18,
+            'rating' => 4.8,
+            'students_count' => 120,
+            'price' => 29.99,
+            'outcomes' => ['Improve fluency', 'Build stronger answers'],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.title', 'IELTS Speaking Fluency Lab')
+            ->assertJsonPath('data.slug', 'ielts-speaking-fluency-lab')
+            ->assertJsonPath('data.units_count', 3);
+
+        $package = Package::where('title', 'IELTS Speaking Fluency Lab')->firstOrFail();
+        $this->assertSame(7, Document::whereHas('unit', fn ($query) => $query->where('package_id', $package->id))->count());
+
+        $this->putJson("/api/admin/packages/{$package->id}", [
+            'title' => 'IELTS Speaking Fluency Lab Plus',
+            'price' => 34.99,
+        ])->assertOk()
+            ->assertJsonPath('data.title', 'IELTS Speaking Fluency Lab Plus')
+            ->assertJsonPath('data.price', 34.99);
+    }
+
+    public function test_admin_can_list_and_hide_package(): void
+    {
+        Sanctum::actingAs($this->admin);
+
+        $package = Package::factory()->create(['title' => 'Catalog Package']);
+
+        $this->getJson('/api/admin/packages?search=Catalog')
+            ->assertOk()
+            ->assertJsonPath('data.0.title', 'Catalog Package');
+
+        $this->deleteJson("/api/admin/packages/{$package->id}")
+            ->assertOk();
+
+        $this->assertDatabaseHas('packages', [
+            'id' => $package->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_student_cannot_manage_package_catalogue(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $this->getJson('/api/admin/packages')->assertForbidden();
     }
 }

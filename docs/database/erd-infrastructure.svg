@@ -84,7 +84,7 @@
 <text x="494" y="1326" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">expires_at  :  timestamp  [?]</text>
 <text x="494" y="1348" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
 <text x="494" y="1370" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
-<rect x="40" y="1560" width="340" height="264" rx="9" fill="white" stroke="#1d4ed8"/>
+<rect x="40" y="1560" width="340" height="374" rx="9" fill="white" stroke="#1d4ed8"/>
 <text x="54" y="1586" font-family="Segoe UI,Arial,sans-serif" font-size="20" fill="#1d4ed8">users</text>
 <text x="54" y="1607" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#1d4ed8">SQL</text>
 <text x="54" y="1632" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">id  :  bigint  [PK]</text>
@@ -96,5 +96,10 @@
 <text x="54" y="1764" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">remember_token  :  varchar(100)  [?]</text>
 <text x="54" y="1786" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">created_at  :  timestamp  [?]</text>
 <text x="54" y="1808" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">updated_at  :  timestamp  [?]</text>
+<text x="54" y="1830" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">avatar  :  varchar  [?]</text>
+<text x="54" y="1852" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">provider  :  varchar  [?]</text>
+<text x="54" y="1874" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">provider_id  :  varchar  [?]</text>
+<text x="54" y="1896" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">target_band  :  varchar(16)  [?]</text>
+<text x="54" y="1918" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">bio  :  text  [?]</text>
 <text x="40" y="1908" font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#334155">* attempts.user_id / exam_id: enforced FK only in SQL fallback. MongoDB references have no SQL FK.</text>
 </svg>

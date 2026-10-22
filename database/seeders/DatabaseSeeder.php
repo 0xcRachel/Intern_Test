@@ -118,7 +118,10 @@ class DatabaseSeeder extends Seeder
         // 6. Factory-generated demo packages and exams (idempotent by title)
         $this->call(DemoContentSeeder::class);
 
-        // 7. Storefront demo: coupons, a paid order and course enrollments
+        // 7. Realistic IELTS catalogue for the storefront demo.
+        $this->call(RealisticPackageSeeder::class);
+
+        // 8. Storefront demo: coupons, a paid order and course enrollments
         $this->call(CommerceDemoSeeder::class);
     }
 }

@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -27,9 +27,9 @@ export function meta() {
 export default function AdminOrderDetail() {
   const { orderId } = useParams();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -39,7 +39,7 @@ export default function AdminOrderDetail() {
         if (active) setOrder(data?.data || null);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được đơn hàng" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -51,13 +51,11 @@ export default function AdminOrderDetail() {
 
   if (loading) return <LoadingScreen label="Đang tải đơn hàng..." />;
 
-  if (error || !order) {
+  if (!order) {
     return (
       <>
         <PageHeader eyebrow="Kinh doanh" title="Không tìm thấy đơn hàng" />
-        <Alert className="mt-5" tone="error">
-          {error || "Đơn hàng không tồn tại."}
-        </Alert>
+          <p className="mt-5 text-sm text-muted">Đơn hàng không tồn tại.</p>
         <Link to="/admin/orders" className="mt-5 inline-flex">
           <Button variant="secondary">
             <ArrowLeft className="h-4 w-4" />

@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
+import { useNotifications } from "../components/notifications";
 import { RequireAuth } from "../components/auth-gate";
 import { formatDate, formatPrice } from "../lib/format";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -34,10 +34,10 @@ function statusBadge(status) {
 
 function OrdersPage() {
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [orders, setOrders] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -49,7 +49,7 @@ function OrdersPage() {
         setMeta(data?.meta || null);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được đơn hàng" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -79,11 +79,6 @@ function OrdersPage() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được đơn hàng">
-          {error}
-        </Alert>
-      ) : null}
 
       {!loading && orders.length ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -160,7 +155,7 @@ function OrdersPage() {
               </Card>
             ))}
           </div>
-        ) : !error ? (
+        ) : (
           <EmptyState
             icon={ReceiptText}
             title="Chưa có đơn hàng"
@@ -174,7 +169,7 @@ function OrdersPage() {
               </Link>
             }
           />
-        ) : null}
+        )}
       </div>
     </>
   );

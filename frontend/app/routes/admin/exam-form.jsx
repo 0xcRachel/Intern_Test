@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Clock3, ListChecks, Save, Sparkles, Target } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import {
-  Alert,
   Button,
   Card,
   Field,
@@ -24,6 +24,7 @@ export default function AdminExamForm() {
   const isEdit = Boolean(examId);
   const navigate = useNavigate();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -32,7 +33,6 @@ export default function AdminExamForm() {
   });
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isEdit) return;
@@ -50,7 +50,7 @@ export default function AdminExamForm() {
         });
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được đề" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -66,7 +66,6 @@ export default function AdminExamForm() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
     setSaving(true);
     try {
       const body = {
@@ -87,7 +86,7 @@ export default function AdminExamForm() {
         navigate(`/admin/exams/${created.id}/questions`);
       }
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không lưu được đề" });
     } finally {
       setSaving(false);
     }
@@ -114,11 +113,6 @@ export default function AdminExamForm() {
         />
       </div>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không lưu được đề">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="p-5 sm:p-6">

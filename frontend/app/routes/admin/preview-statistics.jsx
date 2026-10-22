@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import { Reveal } from "../../components/reveal";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -30,18 +30,17 @@ export function meta() {
 
 export default function AdminPreviewStatistics() {
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   async function load() {
     setLoading(true);
-    setError("");
     try {
       const response = await api("/admin/preview-statistics", { token });
       setData(response?.data || null);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được thống kê xem thử" });
     } finally {
       setLoading(false);
     }
@@ -70,11 +69,6 @@ export default function AdminPreviewStatistics() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được thống kê xem thử">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {loading ? (

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net">
   <diagram name="ERD / Application data" id="erd-domain">
-    <mxGraphModel page="1" pageWidth="1320" pageHeight="1990">
+    <mxGraphModel page="1" pageWidth="1320" pageHeight="2700">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -59,7 +59,52 @@
             <Array as="points">
               <mxPoint x="210" y="1130" />
               <mxPoint x="880" y="1130" />
-              <mxPoint x="880" y="1670" />
+              <mxPoint x="880" y="2370" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" value="1 : 0..N  user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="users" target="orders">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="420" y="670" />
+              <mxPoint x="420" y="1880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" value="1 : 0..N  order_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="orders" target="order_items">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="0..1 : 0..N  package_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;dashed=1;" edge="1" parent="1" source="packages" target="order_items">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="350" y="530" />
+              <mxPoint x="950" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" value="1 : 0..N  user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="users" target="enrollments">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="210" y="2140" />
+              <mxPoint x="650" y="2140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" value="1 : 0..N  package_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;" edge="1" parent="1" source="packages" target="enrollments">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="350" y="530" />
+              <mxPoint x="510" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" value="0..1 : 0..N  order_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=ERmany;startArrow=ERone;strokeColor=#64748b;fontSize=12;labelBackgroundColor=#f8fafc;dashed=1;" edge="1" parent="1" source="orders" target="enrollments">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="650" y="2200" />
+              <mxPoint x="650" y="2200" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -72,8 +117,8 @@
         <mxCell id="options" value="options  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;question_id  :  bigint  [FK]&#10;option_text  :  text&#10;is_correct  :  boolean&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="920" y="180" width="340" height="198" />
         </mxCell>
-        <mxCell id="users" value="users  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;name  :  varchar&#10;email  :  varchar  [UQ]&#10;role  :  enum&#10;email_verified_at  :  timestamp  [?]&#10;password  :  varchar&#10;remember_token  :  varchar(100)  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="40" y="570" width="340" height="264" />
+        <mxCell id="users" value="users  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;name  :  varchar&#10;email  :  varchar  [UQ]&#10;role  :  enum&#10;email_verified_at  :  timestamp  [?]&#10;password  :  varchar&#10;remember_token  :  varchar(100)  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]&#10;avatar  :  varchar  [?]&#10;provider  :  varchar  [?]&#10;provider_id  :  varchar  [?]&#10;target_band  :  varchar(16)  [?]&#10;bio  :  text  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="570" width="340" height="374" />
         </mxCell>
         <mxCell id="attempts" value="attempts  |  MongoDB / SQL fallback&#10;&#10;id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]&#10;user_id  :  bigint  [REF / FK*]&#10;exam_id  :  bigint  [REF / FK*]&#10;questions  :  json  [?]&#10;submitted_answers  :  json  [?]&#10;answers  :  json  [?]&#10;wrong_questions  :  json  [?]&#10;score  :  float&#10;total_points  :  float&#10;percentage  :  float&#10;is_passed  :  boolean&#10;status  :  varchar&#10;start_time  :  timestamp  [?]&#10;end_time  :  timestamp  [?]&#10;started_at  :  timestamp  [?]&#10;submitted_at  :  timestamp  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#b45309;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="480" y="570" width="340" height="462" />
@@ -81,17 +126,29 @@
         <mxCell id="activity_logs" value="activity_logs  |  MongoDB / SQL fallback&#10;&#10;id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]&#10;user_id  :  bigint  [REF  ?]&#10;user_name  :  varchar  [?]&#10;action  :  varchar&#10;description  :  text  [?]&#10;metadata  :  json  [?]&#10;properties  :  json  [?]&#10;ip_address  :  varchar  [?]&#10;user_agent  :  varchar  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#b45309;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="920" y="570" width="340" height="308" />
         </mxCell>
-        <mxCell id="packages" value="packages  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;title  :  varchar&#10;description  :  text  [?]&#10;price  :  decimal(10,2)&#10;is_active  :  boolean&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="40" y="1190" width="340" height="220" />
+        <mxCell id="packages" value="packages  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;title  :  varchar&#10;description  :  text  [?]&#10;price  :  decimal(10,2)&#10;is_active  :  boolean&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]&#10;slug  :  varchar  [UQ ?]&#10;level  :  varchar(32)&#10;duration_hours  :  uint&#10;rating  :  decimal(3,2)&#10;students_count  :  uint&#10;is_featured  :  boolean&#10;outcomes  :  json  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1190" width="340" height="374" />
         </mxCell>
         <mxCell id="units" value="units  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;package_id  :  bigint  [FK]&#10;title  :  varchar&#10;description  :  text  [?]&#10;order  :  int&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="480" y="1190" width="340" height="220" />
         </mxCell>
-        <mxCell id="documents" value="documents  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;unit_id  :  bigint  [FK]&#10;title  :  varchar&#10;type  :  enum&#10;file_path  :  varchar  [?]&#10;total_pages  :  int&#10;preview_pages  :  int&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="920" y="1190" width="340" height="264" />
+        <mxCell id="documents" value="documents  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;unit_id  :  bigint  [FK]&#10;title  :  varchar&#10;type  :  enum&#10;file_path  :  varchar  [?]&#10;total_pages  :  int&#10;preview_pages  :  int&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]&#10;preview_content  :  json  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="920" y="1190" width="340" height="286" />
+        </mxCell>
+        <mxCell id="coupons" value="coupons  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;code  :  varchar  [UQ]&#10;label  :  varchar&#10;type  :  varchar&#10;value  :  decimal(10,2)&#10;is_active  :  boolean&#10;expires_at  :  timestamp  [?]&#10;usage_limit  :  uint  [?]&#10;used_count  :  uint&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1780" width="340" height="308" />
+        </mxCell>
+        <mxCell id="orders" value="orders  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;user_id  :  bigint  [FK]&#10;code  :  varchar  [UQ]&#10;status  :  varchar&#10;subtotal  :  decimal(10,2)&#10;discount  :  decimal(10,2)&#10;total  :  decimal(10,2)&#10;currency  :  varchar&#10;coupon_code  :  varchar  [?]&#10;payment_method  :  varchar  [?]&#10;paid_at  :  timestamp  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="1780" width="340" height="352" />
+        </mxCell>
+        <mxCell id="order_items" value="order_items  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;order_id  :  bigint  [FK]&#10;package_id  :  bigint  [FK ?]&#10;package_title  :  varchar&#10;package_slug  :  varchar  [?]&#10;price  :  decimal(10,2)&#10;quantity  :  uint&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="920" y="1780" width="340" height="264" />
+        </mxCell>
+        <mxCell id="enrollments" value="enrollments  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;user_id  :  bigint  [FK]&#10;package_id  :  bigint  [FK]&#10;order_id  :  bigint  [FK ?]&#10;enrolled_at  :  timestamp  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="2280" width="340" height="220" />
         </mxCell>
         <mxCell id="preview_logs" value="preview_logs  |  MongoDB / SQL fallback&#10;&#10;id (SQL) / _id (Mongo)  :  bigint / ObjectId  [PK]&#10;user_id  :  bigint  [REF  ?]&#10;document_id  :  bigint  [REF]&#10;ip_address  :  varchar  [?]&#10;user_agent  :  varchar  [?]&#10;expires_at  :  timestamp  [?]&#10;accessed_at  :  timestamp  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#b45309;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="920" y="1580" width="340" height="264" />
+          <mxGeometry as="geometry" x="920" y="2280" width="340" height="264" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -144,8 +201,8 @@
         <mxCell id="personal_access_tokens" value="personal_access_tokens  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;tokenable_type  :  varchar  [IDX]&#10;tokenable_id  :  bigint  [REF IDX]&#10;name  :  text&#10;token  :  varchar  [UQ]&#10;abilities  :  text  [?]&#10;last_used_at  :  timestamp  [?]&#10;expires_at  :  timestamp  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="480" y="1100" width="340" height="286" />
         </mxCell>
-        <mxCell id="users" value="users  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;name  :  varchar&#10;email  :  varchar  [UQ]&#10;role  :  enum&#10;email_verified_at  :  timestamp  [?]&#10;password  :  varchar&#10;remember_token  :  varchar(100)  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="40" y="1560" width="340" height="264" />
+        <mxCell id="users" value="users  |  SQL&#10;&#10;id  :  bigint  [PK]&#10;name  :  varchar&#10;email  :  varchar  [UQ]&#10;role  :  enum&#10;email_verified_at  :  timestamp  [?]&#10;password  :  varchar&#10;remember_token  :  varchar(100)  [?]&#10;created_at  :  timestamp  [?]&#10;updated_at  :  timestamp  [?]&#10;avatar  :  varchar  [?]&#10;provider  :  varchar  [?]&#10;provider_id  :  varchar  [?]&#10;target_band  :  varchar(16)  [?]&#10;bio  :  text  [?]" style="rounded=1;whiteSpace=wrap;html=0;align=left;verticalAlign=top;spacing=12;fontSize=13;fontFamily=Consolas;fillColor=#ffffff;strokeColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1560" width="340" height="374" />
         </mxCell>
       </root>
     </mxGraphModel>

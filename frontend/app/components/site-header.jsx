@@ -5,10 +5,11 @@ import { Logo } from "./logo";
 import { useAuth } from "../context/auth";
 import { UserMenu } from "./user-menu";
 import { CartButton } from "./cart-button";
+import { NotificationCenter } from "./notification-center";
 
 const publicLinks = [
-  { label: "Quy trình", href: "/#process" },
-  { label: "Tài liệu IELTS", to: "/packages" },
+  { label: "Khám phá", href: "/#process" },
+  { label: "Khóa học", to: "/packages" },
   { label: "Đề luyện tập", to: "/exams" },
   { label: "Khóa học của tôi", to: "/my-courses", authOnly: true },
   { label: "Hỏi đáp", href: "/#faq" },
@@ -27,13 +28,13 @@ export function SiteHeader() {
   }, [location.pathname, location.hash]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-md">
-      <div className="mx-auto flex h-[76px] max-w-[1216px] items-center justify-between gap-4 px-5 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-[1320px] items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setMobileOpen((value) => !value)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-mist md:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted hover:bg-mist xl:hidden"
             aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={mobileOpen}
           >
@@ -42,15 +43,15 @@ export function SiteHeader() {
           <Logo />
         </div>
 
-        <nav className="hidden items-center gap-1 text-sm text-muted md:flex" aria-label="Điều hướng chính">
+        <nav className="hidden items-center gap-1 rounded-full bg-canvas p-1 text-[13px] font-medium text-muted xl:flex" aria-label="Điều hướng chính">
           {visibleLinks.map((item) =>
             item.to ? (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `rounded-md px-3 py-2 transition-colors ${
-                    isActive ? "bg-mist/70 text-ink" : "hover:bg-mist/45 hover:text-ink"
+                  `rounded-full px-4 py-2.5 transition-colors ${
+                    isActive ? "bg-white text-steel shadow-sm" : "hover:bg-white hover:text-ink"
                   }`
                 }
               >
@@ -60,7 +61,7 @@ export function SiteHeader() {
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-md px-3 py-2 transition-colors hover:bg-mist/45 hover:text-ink"
+                className="rounded-full px-4 py-2.5 transition-colors hover:bg-white hover:text-ink"
               >
                 {item.label}
               </a>
@@ -69,13 +70,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <NotificationCenter />
           <CartButton />
           {ready && isAuthenticated ? (
             <UserMenu compact />
           ) : (
             <Link
               to="/login"
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 text-sm font-medium text-ink transition-colors hover:border-steel/60 hover:bg-mist/40"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-white transition-colors hover:bg-steel"
             >
               <LogIn className="h-4 w-4" />
               <span className="hidden sm:inline">Đăng nhập</span>
@@ -86,7 +88,7 @@ export function SiteHeader() {
       </div>
 
       {mobileOpen ? (
-        <div className="drawer-enter border-t border-line bg-surface-raised px-5 py-4 md:hidden">
+        <div className="drawer-enter max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-line bg-surface-raised px-5 py-4 shadow-xl xl:hidden">
           <nav className="grid gap-1" aria-label="Điều hướng di động">
             {visibleLinks.map((item) =>
               item.to ? (
@@ -167,12 +169,12 @@ export function PublicFooter() {
   const { ready, isAuthenticated } = useAuth();
 
   return (
-    <footer className="mt-auto border-t border-line bg-surface-raised/75">
-      <div className="mx-auto flex max-w-[1216px] flex-col gap-5 px-5 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <footer className="mt-auto border-t border-line bg-white">
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-6 px-5 py-10 text-sm text-muted lg:flex-row lg:items-center lg:justify-between sm:px-8">
         <div className="flex items-center gap-3">
           <Logo compact />
           <span className="hidden text-xs sm:inline">
-            Luyện IELTS rõ ràng, có lộ trình.
+            Learn. Practice. Grow.
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">

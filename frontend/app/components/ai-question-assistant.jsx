@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../lib/api";
 import { buildQuestionDrafts, DIFFICULTIES, SKILLS } from "../lib/ai-question-bank";
-import { Alert, Badge, Button, Card, Field, Select, Spinner } from "./ui";
+import { useNotifications } from "./notifications";
+import { Badge, Button, Card, Field, Select, Spinner } from "./ui";
 
 export function AiQuestionAssistant({ exams = [], token, onCreated }) {
+  const notifications = useNotifications();
   const [examId, setExamId] = useState(exams[0]?.id || "");
   const [skill, setSkill] = useState("Reading");
   const [difficulty, setDifficulty] = useState("Intermediate");
@@ -22,8 +24,6 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [lastExamId, setLastExamId] = useState("");
 
   useEffect(() => {
@@ -31,8 +31,6 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
   }, [exams, examId]);
 
   function generate() {
-    setError("");
-    setSuccess("");
     setDrafts([]);
     setGenerating(true);
     window.setTimeout(() => {
@@ -44,8 +42,6 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
   async function addAll() {
     if (!drafts.length || !examId) return;
     setSaving(true);
-    setError("");
-    setSuccess("");
     setProgress(0);
     let created = 0;
     try {
@@ -64,7 +60,7 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
         created += 1;
         setProgress(created);
       }
-      setSuccess(`Đã thêm ${created} câu hỏi vào đề.`);
+      notifications.success(`Đã thêm ${created} câu hỏi vào đề.`, { title: "Đã cập nhật ngân hàng câu hỏi" });
       setLastExamId(examId);
       setDrafts([]);
       onCreated?.();
@@ -74,10 +70,11 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
         setDrafts((current) => current.slice(created));
         onCreated?.();
       }
-      setError(
+      notifications.error(
         created
           ? `Đã thêm ${created}/${drafts.length} câu. ${errorMessage(requestError)} Các câu còn lại vẫn ở bên dưới để thử lại.`
           : errorMessage(requestError),
+        { title: "Trợ lý AI gặp lỗi" },
       );
     } finally {
       setSaving(false);
@@ -201,23 +198,6 @@ export function AiQuestionAssistant({ exams = [], token, onCreated }) {
       </div>
 
       <div className="p-5">
-        {error ? (
-          <Alert className="mb-4" tone="error" title="Trợ lý AI gặp lỗi">
-            {error}
-          </Alert>
-        ) : null}
-        {success ? (
-          <Alert className="mb-4" tone="success" title={success}>
-            <Link
-              to={`/admin/exams/${targetExamId}/questions`}
-              className="inline-flex items-center gap-1 font-medium underline decoration-success/40 underline-offset-2"
-            >
-              Mở danh sách câu hỏi
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </Alert>
-        ) : null}
-
         {generating ? (
           <div className="space-y-3">
             <div className="h-20 animate-pulse rounded-lg bg-mist/60" />

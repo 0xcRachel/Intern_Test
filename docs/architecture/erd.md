@@ -2,8 +2,8 @@
 
 Sơ đồ dưới đây phản ánh schema hiện tại trong các migration Laravel. Các bảng
 nghiệp vụ dùng MySQL; `attempts`, `activity_logs` và `preview_logs` được model
-chạy trên MongoDB khi `MONGODB_ENABLED=true` (khi tắt Mongo, chúng fallback về
-connection mặc định để test).
+chạy trên MongoDB khi `MONGO_ENABLED` bật và PHP có extension MongoDB (khi tắt
+Mongo, chúng fallback về connection mặc định để test).
 
 ```mermaid
 erDiagram
@@ -66,6 +66,8 @@ erDiagram
         decimal rating
         int students_count
         boolean is_active
+        boolean is_featured
+        json outcomes
     }
     UNITS {
         bigint id PK
@@ -91,14 +93,17 @@ erDiagram
         decimal subtotal
         decimal discount
         decimal total
+        string currency
         string coupon_code
+        string payment_method
         timestamp paid_at
     }
     ORDER_ITEMS {
         bigint id PK
         bigint order_id FK
-        bigint package_id FK
+        bigint package_id FK "nullable"
         string package_title
+        string package_slug
         decimal price
         int quantity
     }
@@ -112,6 +117,7 @@ erDiagram
     COUPONS {
         bigint id PK
         string code UK
+        string label
         string type
         decimal value
         boolean is_active
@@ -129,6 +135,11 @@ erDiagram
         string status
         datetime start_time
         datetime submitted_at
+        datetime end_time
+        float score
+        float total_points
+        float percentage
+        boolean is_passed
     }
     ACTIVITY_LOGS {
         string _id PK "MongoDB"
@@ -153,4 +164,9 @@ erDiagram
 được áp dụng tại thời điểm checkout. `ATTEMPTS` và `PREVIEW_LOGS` giữ ID của
 thực thể MySQL để liên kết chéo giữa hai database; các liên kết này được kiểm
 tra ở tầng service/controller thay vì bằng foreign key vật lý.
+
+`order_items` giữ snapshot thông tin khóa học (`package_title`,
+`package_slug`, `price`) để hóa đơn không thay đổi khi danh mục được chỉnh sửa.
+`order_items.package_id` và `enrollments.order_id` là liên kết nullable và dùng
+`nullOnDelete`; `enrollments` unique theo cặp `user_id + package_id`.
 

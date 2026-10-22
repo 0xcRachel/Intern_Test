@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
   ArrowLeft,
@@ -13,9 +13,9 @@ import {
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
 import { RequireAuth } from "../components/auth-gate";
+import { useNotifications } from "../components/notifications";
 import { formatDate, formatPrice } from "../lib/format";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -30,10 +30,11 @@ export function meta() {
 function OrderDetailPage() {
   const { orderId } = useParams();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const successNotifiedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -43,7 +44,7 @@ function OrderDetailPage() {
         if (active) setOrder(data?.data || null);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được đơn hàng" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -53,6 +54,16 @@ function OrderDetailPage() {
     };
   }, [orderId, token]);
 
+  const isSuccess = searchParams.get("success") === "1" && order?.status === "paid";
+
+  useEffect(() => {
+    if (!isSuccess || successNotifiedRef.current) return;
+    successNotifiedRef.current = true;
+    notifications.success("Khóa học đã được kích hoạt và thêm vào thư viện của bạn.", {
+      title: "Thanh toán thành công",
+    });
+  }, [isSuccess, notifications]);
+
   if (loading) {
     return (
       <>
@@ -61,13 +72,11 @@ function OrderDetailPage() {
     );
   }
 
-  if (error || !order) {
+  if (!order) {
     return (
       <>
         <PageHeader eyebrow="Đơn hàng" title="Không tìm thấy đơn hàng" />
-        <Alert className="mt-5" tone="error">
-          {error || "Đơn hàng không tồn tại hoặc bạn không có quyền truy cập."}
-        </Alert>
+          <p className="mt-5 text-sm text-muted">Đơn hàng không tồn tại hoặc bạn không có quyền truy cập.</p>
         <Link to="/orders" className="mt-5 inline-block">
           <Button variant="secondary">
             <ArrowLeft className="h-4 w-4" />
@@ -77,8 +86,6 @@ function OrderDetailPage() {
       </>
     );
   }
-
-  const isSuccess = searchParams.get("success") === "1" && order.status === "paid";
 
   return (
     <>
@@ -95,12 +102,6 @@ function OrderDetailPage() {
           Đơn hàng demo
         </Badge>
       </div>
-
-      {isSuccess ? (
-        <Alert className="mt-5" tone="success" title="Thanh toán thành công">
-          Khóa học đã được kích hoạt và thêm vào thư viện của bạn.
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <Card className="overflow-hidden">

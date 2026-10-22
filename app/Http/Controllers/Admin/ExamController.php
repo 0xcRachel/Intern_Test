@@ -29,19 +29,23 @@ class ExamController extends Controller
 
         // Role is part of the key so admin payloads (with questions/answers)
         // can never be served to students.
-        $cacheKey = "exams_list_v{$cacheVersion}_" . ($isAdmin ? 'admin' : 'student')
-            . "_" . md5("{$search}_{$perPage}_{$page}");
+        // Cache the serialized API payload rather than LengthAwarePaginator.
+        // Database/file cache stores serialize values, and a paginator object
+        // can be restored as an incomplete object after a refresh or deploy.
+        $cacheKey = "exams_list_payload_v2_{$cacheVersion}_".($isAdmin ? 'admin' : 'student')
+            .'_'.md5("{$search}_{$perPage}_{$page}");
         $isHit = Cache::has($cacheKey);
 
-        $exams = Cache::remember($cacheKey, 60, function () use ($search, $perPage, $isAdmin) {
-            return $this->examService->list(
+        $data = Cache::remember($cacheKey, 60, function () use ($search, $perPage, $isAdmin) {
+            $paginator = $this->examService->list(
                 search: $search,
                 perPage: $perPage,
                 withQuestions: $isAdmin,
             );
+
+            return ExamResource::collection($paginator)->response()->getData(true);
         });
 
-        $data = ExamResource::collection($exams)->response()->getData(true);
         $data['cache_status'] = $isHit ? 'HIT' : 'MISS';
 
         return response()->json($data, 200)

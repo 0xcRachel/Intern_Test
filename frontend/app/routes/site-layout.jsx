@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router";
 import { SiteHeader, PublicFooter } from "../components/site-header";
 import { ContactChat } from "../components/contact-chat";
-import { useRouteMotion } from "../context/route-motion";
+import { PageMotion } from "../components/page-motion";
 
 const fullBleedPaths = ["/", "/packages"];
 
@@ -16,7 +16,6 @@ function isFullBleed(pathname) {
  */
 export default function SiteLayout() {
   const { pathname } = useLocation();
-  const routeAnimate = useRouteMotion();
   const fullBleed = isFullBleed(pathname);
 
   return (
@@ -35,12 +34,12 @@ export default function SiteLayout() {
         className={
           fullBleed
             ? "flex-1"
-            : "mx-auto w-full max-w-[1216px] flex-1 px-5 py-8 sm:px-6 sm:py-10"
+            : "workspace-content mx-auto w-full max-w-[1320px] flex-1 px-4 py-8 sm:px-8 sm:py-10"
         }
       >
-        <div key={pathname} className={!fullBleed && routeAnimate ? "page-enter" : undefined}>
+        <PageMotion>
           <Outlet />
-        </div>
+        </PageMotion>
       </main>
 
       <PublicFooter />

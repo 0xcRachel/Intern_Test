@@ -24,6 +24,8 @@ if [ -z "${APP_KEY}" ] && ! grep -Eq '^APP_KEY=.+' .env 2>/dev/null; then
 fi
 
 mkdir -p /tmp/laravel
+chown -R www-data:www-data /tmp/laravel
+chmod 775 /tmp/laravel
 php artisan config:clear >/dev/null 2>&1 || true
 php artisan migrate --force --no-interaction
 

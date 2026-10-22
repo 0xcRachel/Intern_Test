@@ -13,8 +13,8 @@ import {
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
 import { RequireAuth } from "../components/auth-gate";
+import { useNotifications } from "../components/notifications";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -38,13 +38,13 @@ function AttemptPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const initialAttempt = location.state?.attempt;
 
   const [attempt, setAttempt] = useState(initialAttempt || null);
   const [questions, setQuestions] = useState(initialAttempt?.questions || []);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(!initialAttempt);
-  const [error, setError] = useState("");
   const [timeLeft, setTimeLeft] = useState(
     initialAttempt ? (initialAttempt.duration_minutes || 60) * 60 : 0,
   );
@@ -64,9 +64,28 @@ function AttemptPage() {
   }, [answers]);
 
   useEffect(() => {
+    if (!attempt) return;
+
+    const savedCount = Object.values(normalizeSavedAnswers(attempt.saved_answers)).filter(
+      (value) => value != null,
+    ).length;
+
+    if (savedCount > 0) {
+      notifications.info(`Đã khôi phục ${savedCount} câu trả lời đã lưu trước đó.`, {
+        title: "Tiếp tục bài làm",
+        duration: 3500,
+      });
+    } else if (initialAttempt?.attempt_id || initialAttempt?.id) {
+      notifications.info("Bài làm đã sẵn sàng. Câu trả lời sẽ được tự động lưu.", {
+        title: "Bắt đầu luyện tập",
+        duration: 3500,
+      });
+    }
+  }, [attempt?.attempt_id]);
+
+  useEffect(() => {
     let active = true;
     setLoading(true);
-    setError("");
 
     api(`/attempts/${attemptId}/resume`, { token })
       .then((data) => {
@@ -82,9 +101,16 @@ function AttemptPage() {
         answersRef.current = normalized;
         setTimeLeft(Math.max(0, Number(data.remaining_seconds) || 0));
         setActiveQuestionId(data.questions?.[0]?.id ?? null);
+        const savedCount = Object.values(normalized).filter((value) => value != null).length;
+        if (savedCount > 0) {
+          notifications.info(`Đã khôi phục ${savedCount} câu trả lời đã lưu trước đó.`, {
+            title: "Tiếp tục bài làm",
+            duration: 3500,
+          });
+        }
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không mở được bài làm" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -138,6 +164,9 @@ function AttemptPage() {
         setLastSaved(data?.saved_at ? new Date(data.saved_at).toLocaleTimeString("vi-VN") : "");
       } catch {
         setAutosaveStatus("error");
+        notifications.warning("Đáp án chưa được lưu. Hệ thống sẽ thử lại ở lần thay đổi tiếp theo.", {
+          title: "Autosave tạm thời thất bại",
+        });
       }
     });
     saveQueueRef.current = queued.catch(() => undefined);
@@ -156,7 +185,15 @@ function AttemptPage() {
   async function submitExam(auto = false) {
     if (!attempt || submitting || submittedRef.current) return;
     setSubmitting(true);
-    setError("");
+    const unansweredCount = questions.length - Object.values(answersRef.current).filter(
+      (value) => value != null,
+    ).length;
+    if (unansweredCount > 0 && !auto) {
+      notifications.warning(`Bạn còn ${unansweredCount} câu chưa trả lời. Kiểm tra lại trước khi nộp.`, {
+        title: "Bài làm chưa hoàn tất",
+        duration: 5000,
+      });
+    }
     try {
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
       await saveAnswers(answersRef.current);
@@ -189,7 +226,7 @@ function AttemptPage() {
       if (requestError?.status === 422 && /already been submitted/i.test(message)) {
         navigate(`/attempts/${attempt.attempt_id}/result`, { replace: true });
       } else {
-        setError(message);
+        notifications.error(message, { title: "Không thể nộp bài" });
         if (!auto) setSubmitOpen(false);
       }
     } finally {
@@ -211,12 +248,10 @@ function AttemptPage() {
     );
   }
 
-  if (error && !attempt) {
+  if (!attempt) {
     return (
       <>
-        <Alert tone="error" title="Không mở được bài làm">
-          {error}
-        </Alert>
+        <p className="text-sm text-muted">Không thể mở bài làm. Vui lòng thử lại từ danh sách đề.</p>
         <Link to="/exams" className="mt-5 inline-block">
           <Button variant="secondary">
             <ArrowLeft className="h-4 w-4" />
@@ -275,7 +310,7 @@ function AttemptPage() {
             {autosaveStatus === "saving"
               ? "Đang lưu"
               : autosaveStatus === "saved"
-                ? `Đã lưu${lastSaved ? ` · ${lastSaved}` : ""}`
+                ? lastSaved || "✓"
                 : autosaveStatus === "error"
                   ? "Lưu lỗi"
                   : "Chưa lưu"}
@@ -287,11 +322,6 @@ function AttemptPage() {
         </div>
       </div>
 
-      {error ? (
-        <Alert className="mb-5" tone="error" title="Không thể nộp bài">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-4">

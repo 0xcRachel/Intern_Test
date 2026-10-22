@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
+import { useNotifications } from "../../components/notifications";
 import {
-  Alert,
   Button,
   Card,
   Field,
@@ -44,6 +44,7 @@ export default function AdminQuestionForm() {
   const isEdit = Boolean(questionId);
   const navigate = useNavigate();
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [exam, setExam] = useState(null);
   const [form, setForm] = useState({
     question_text: "",
@@ -58,12 +59,10 @@ export default function AdminQuestionForm() {
   ]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setError("");
 
     Promise.all([
       api(`/admin/exams/${examId}`, { token }),
@@ -84,7 +83,7 @@ export default function AdminQuestionForm() {
         }
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được câu hỏi" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -131,7 +130,6 @@ export default function AdminQuestionForm() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
 
     const cleanedOptions = options
       .map((option) => ({
@@ -141,11 +139,11 @@ export default function AdminQuestionForm() {
       .filter((option) => option.option_text);
 
     if (cleanedOptions.length < 2) {
-      setError("Cần ít nhất hai lựa chọn có nội dung.");
+      notifications.warning("Cần ít nhất hai lựa chọn có nội dung.", { title: "Chưa thể lưu câu hỏi" });
       return;
     }
     if (!cleanedOptions.some((option) => option.is_correct)) {
-      setError("Cần đánh dấu ít nhất một đáp án đúng.");
+      notifications.warning("Cần đánh dấu ít nhất một đáp án đúng.", { title: "Chưa thể lưu câu hỏi" });
       return;
     }
 
@@ -165,7 +163,7 @@ export default function AdminQuestionForm() {
       });
       navigate(`/admin/exams/${examId}/questions`);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không lưu được câu hỏi" });
     } finally {
       setSaving(false);
     }
@@ -196,11 +194,6 @@ export default function AdminQuestionForm() {
         />
       </div>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không lưu được câu hỏi">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
       <form className="space-y-5" onSubmit={handleSubmit}>

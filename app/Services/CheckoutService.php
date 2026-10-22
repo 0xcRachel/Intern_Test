@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\User;
+use App\Notifications\OrderActivatedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +27,7 @@ class CheckoutService
         $discount = $coupon ? $coupon->discountFor($subtotal) : 0.0;
         $total = round(max(0, $subtotal - $discount), 2);
 
-        return DB::transaction(function () use ($user, $packages, $subtotal, $discount, $total, $coupon) {
+        $order = DB::transaction(function () use ($user, $packages, $subtotal, $discount, $total, $coupon) {
             $order = Order::create([
                 'user_id' => $user->id,
                 'code' => $this->nextOrderCode(),
@@ -63,6 +64,16 @@ class CheckoutService
 
             return $order->load(['items', 'enrollments.package.units.documents']);
         });
+
+        $user->notify(new OrderActivatedNotification($order));
+
+        User::query()
+            ->where('role', 'admin')
+            ->where('id', '!=', $user->id)
+            ->get()
+            ->each(fn (User $admin): mixed => $admin->notify(new OrderActivatedNotification($order, true)));
+
+        return $order;
     }
 
     /**
@@ -151,7 +162,7 @@ class CheckoutService
     protected function nextOrderCode(): string
     {
         do {
-            $code = 'EP-' . now()->format('ymd') . '-' . Str::upper(Str::random(5));
+            $code = 'EP-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
         } while (Order::where('code', $code)->exists());
 
         return $code;

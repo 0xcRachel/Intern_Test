@@ -27,8 +27,8 @@ import { useCart } from "../context/cart";
 import { formatPrice } from "../lib/format";
 import { DocumentPreviewModal } from "../components/document-preview";
 import { Reveal } from "../components/reveal";
+import { useNotifications } from "../components/notifications";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -138,23 +138,21 @@ export default function PackageDetail() {
   const navigate = useNavigate();
   const { token } = useAuth();
   const { add, has } = useCart();
+  const notifications = useNotifications();
   const [packageItem, setPackageItem] = useState(null);
   const [owned, setOwned] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [previewError, setPreviewError] = useState("");
   const [previewLoadingId, setPreviewLoadingId] = useState(null);
   const [preview, setPreview] = useState(null);
   const [previewDocument, setPreviewDocument] = useState(null);
 
   async function loadPackage() {
     setLoading(true);
-    setError("");
     try {
       const data = await api(`/packages/${packageId}`);
       setPackageItem(data?.data || null);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được khóa học" });
     } finally {
       setLoading(false);
     }
@@ -170,7 +168,7 @@ export default function PackageDetail() {
       return;
     }
     let active = true;
-    api("/my/courses", { token })
+    api("/my/courses?per_page=100", { token })
       .then((data) => {
         if (!active) return;
         setOwned((data?.data || []).some((course) =>
@@ -184,7 +182,6 @@ export default function PackageDetail() {
   }, [packageId, token]);
 
   async function handlePreview(document) {
-    setPreviewError("");
     if (!token) {
       navigate(`/login?next=${encodeURIComponent(`/packages/${packageId}`)}`);
       return;
@@ -198,7 +195,7 @@ export default function PackageDetail() {
       setPreviewDocument(document);
       setPreview(data);
     } catch (requestError) {
-      setPreviewError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Preview chưa khả dụng" });
     } finally {
       setPreviewLoadingId(null);
     }
@@ -234,12 +231,10 @@ export default function PackageDetail() {
     );
   }
 
-  if (error || !packageItem) {
+  if (!packageItem) {
     return (
       <div className="mx-auto w-full max-w-[1216px] px-5 py-10 sm:px-6">
-        <Alert tone="error" title="Không tìm thấy khóa học">
-          {error || "Khóa học không tồn tại hoặc đã bị ẩn."}
-        </Alert>
+          <p className="text-sm text-muted">Khóa học không tồn tại hoặc đã bị ẩn.</p>
         <Link
           to="/packages"
           className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-line bg-surface-raised px-4 text-sm font-medium text-ink hover:border-steel/60"
@@ -500,11 +495,6 @@ export default function PackageDetail() {
               </div>
             </section>
 
-            {previewError ? (
-              <Alert tone="error" title="Preview chưa khả dụng">
-                {previewError}
-              </Alert>
-            ) : null}
           </div>
 
           <div className="space-y-4">
@@ -595,6 +585,7 @@ export default function PackageDetail() {
         }}
         document={previewDocument}
         preview={preview}
+        onUnlock={buyNow}
       />
     </div>
   );

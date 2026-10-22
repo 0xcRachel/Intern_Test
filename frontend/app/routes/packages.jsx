@@ -9,8 +9,8 @@ import { api, errorMessage } from "../lib/api";
 import { PackageCard } from "../components/package-card";
 import { Pagination } from "../components/pagination";
 import { Reveal } from "../components/reveal";
+import { useNotifications } from "../components/notifications";
 import {
-  Alert,
   Button,
   EmptyState,
   Input,
@@ -31,10 +31,10 @@ const levels = [
 ];
 
 export default function Packages() {
+  const notifications = useNotifications();
   const [packages, setPackages] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [level, setLevel] = useState("");
@@ -44,7 +44,6 @@ export default function Packages() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setError("");
     const params = new URLSearchParams({ per_page: "9", page: String(page) });
     if (appliedSearch.trim()) params.set("search", appliedSearch.trim());
     if (level) params.set("level", level);
@@ -56,7 +55,7 @@ export default function Packages() {
         setMeta(data?.meta || null);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được tài liệu" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -164,11 +163,6 @@ export default function Packages() {
           )}
         </Reveal>
 
-        {error ? (
-          <Alert className="mt-6" tone="error" title="Không tải được tài liệu">
-            {error}
-          </Alert>
-        ) : null}
 
         {loading && !packages.length ? (
           <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -199,7 +193,7 @@ export default function Packages() {
               className="mt-8"
             />
           </>
-        ) : !error ? (
+        ) : (
           <div className="mt-8">
             <EmptyState
               icon={BookOpen}
@@ -212,7 +206,7 @@ export default function Packages() {
               }
             />
           </div>
-        ) : null}
+        )}
       </div>
   );
 }

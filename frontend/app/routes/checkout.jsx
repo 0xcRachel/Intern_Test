@@ -75,7 +75,7 @@ function CheckoutPage() {
   useEffect(() => {
     let active = true;
     setOwnedReady(false);
-    api("/my/courses", { token })
+    api("/my/courses?per_page=100", { token })
       .then((data) => {
         if (!active) return;
         setOwnedIds((data?.data || []).map((course) => course.id));

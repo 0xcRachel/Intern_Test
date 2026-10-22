@@ -15,11 +15,12 @@ import {
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
 import { useCart } from "../context/cart";
+import { useNotifications } from "../components/notifications";
 import { RequireAuth } from "../components/auth-gate";
 import { Reveal } from "../components/reveal";
+import { Pagination } from "../components/pagination";
 import { formatPrice } from "../lib/format";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -34,20 +35,24 @@ export function meta() {
 
 function MyCoursesPage() {
   const { token } = useAuth();
+  const notifications = useNotifications();
   const { items: cartItems, count: cartCount, subtotal } = useCart();
   const [courses, setCourses] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api("/my/courses", { token })
+    api(`/my/courses?page=${page}&per_page=6`, { token })
       .then((data) => {
-        if (active) setCourses(data?.data || []);
+        if (!active) return;
+        setCourses(data?.data || []);
+        setPagination(data?.meta || null);
       })
       .catch((requestError) => {
-        if (active) setError(errorMessage(requestError));
+        if (active) notifications.error(errorMessage(requestError), { title: "Không tải được khóa học" });
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -55,7 +60,7 @@ function MyCoursesPage() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [page, token]);
 
   const units = courses.reduce((sum, course) => sum + (course.units?.length || 0), 0);
   const documents = courses.reduce(
@@ -81,15 +86,10 @@ function MyCoursesPage() {
         }
       />
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được khóa học">
-          {error}
-        </Alert>
-      ) : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {[
-          { label: "Khóa học", value: courses.length, icon: GraduationCap },
+          { label: "Khóa học", value: pagination?.total || 0, icon: GraduationCap },
           { label: "Unit", value: units, icon: Layers3 },
           { label: "Tài liệu", value: documents, icon: FileText },
         ].map((stat, index) => {
@@ -120,15 +120,16 @@ function MyCoursesPage() {
               <Skeleton className="h-64" />
             </div>
           ) : courses.length ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {courses.map((course, index) => {
-                const documentCount = (course.units || []).reduce(
-                  (sum, unit) => sum + (unit.documents?.length || 0),
-                  0,
-                );
-                return (
-                  <Reveal key={course.id} delay={index * 0.05}>
-                    <Card className="group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-24px_rgba(20,35,44,0.35)]">
+            <div className="transition-opacity">
+              <div className="grid gap-4 md:grid-cols-2">
+                {courses.map((course, index) => {
+                  const documentCount = (course.units || []).reduce(
+                    (sum, unit) => sum + (unit.documents?.length || 0),
+                    0,
+                  );
+                  return (
+                    <Reveal key={course.id} delay={index * 0.05}>
+                      <Card className="group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-24px_rgba(20,35,44,0.35)]">
                       <div className="relative overflow-hidden bg-ink p-5 text-white">
                         <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-powder/20 blur-2xl transition-transform duration-500 group-hover:scale-125" />
                         <div className="relative flex items-center justify-between">
@@ -185,12 +186,19 @@ function MyCoursesPage() {
                           </Link>
                         </div>
                       </div>
-                    </Card>
-                  </Reveal>
-                );
-              })}
+                      </Card>
+                    </Reveal>
+                  );
+                })}
+              </div>
+              <Pagination
+                meta={pagination}
+                onPageChange={setPage}
+                loading={loading}
+                itemLabel="khóa học"
+              />
             </div>
-          ) : !error ? (
+          ) : (
             <EmptyState
               icon={GraduationCap}
               title="Chưa có khóa học nào"
@@ -204,7 +212,7 @@ function MyCoursesPage() {
                 </Link>
               }
             />
-          ) : null}
+          )}
         </div>
 
         <div className="space-y-4">

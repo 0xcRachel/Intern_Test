@@ -115,7 +115,13 @@ class DocumentController extends Controller
 
         $disk = Storage::disk('local');
         abort_unless($disk->exists($doc->file_path), 404, 'Preview file is unavailable.');
-        $mime = $doc->type === 'audio' ? 'audio/mpeg' : 'application/pdf';
+        $mime = $doc->type === 'audio'
+            ? match (strtolower(pathinfo($doc->file_path, PATHINFO_EXTENSION))) {
+                'wav' => 'audio/wav',
+                'ogg' => 'audio/ogg',
+                default => 'audio/mpeg',
+            }
+        : 'application/pdf';
 
         return response($disk->get($doc->file_path), 200, [
             'Content-Type' => $mime,

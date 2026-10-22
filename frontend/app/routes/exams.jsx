@@ -15,11 +15,11 @@ import {
 import { api, errorMessage } from "../lib/api";
 import { useAuth } from "../context/auth";
 import { RequireAuth } from "../components/auth-gate";
+import { useNotifications } from "../components/notifications";
 import { Pagination } from "../components/pagination";
 import { Reveal } from "../components/reveal";
 import { classNames } from "../lib/format";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -35,18 +35,17 @@ export function meta() {
 
 function ExamsPage() {
   const { token, isAdmin } = useAuth();
+  const notifications = useNotifications();
   const navigate = useNavigate();
   const [exams, setExams] = useState([]);
   const [meta, setMeta] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [startLoading, setStartLoading] = useState(null);
 
   async function loadExams(query = search, page = 1) {
     if (!token) return;
     setLoading(true);
-    setError("");
     try {
       const params = new URLSearchParams();
       if (query.trim()) params.set("search", query.trim());
@@ -56,7 +55,7 @@ function ExamsPage() {
       setExams(data?.data || []);
       setMeta(data?.meta || null);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được đề" });
     } finally {
       setLoading(false);
     }
@@ -68,7 +67,6 @@ function ExamsPage() {
 
   async function handleStart(exam) {
     setStartLoading(exam.id);
-    setError("");
     try {
       const attempt = await api(`/exams/${exam.id}/attempts`, {
         method: "POST",
@@ -76,7 +74,7 @@ function ExamsPage() {
       });
       navigate(`/attempts/${attempt.id}`, { state: { attempt } });
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không thể bắt đầu bài làm" });
     } finally {
       setStartLoading(null);
     }
@@ -199,11 +197,6 @@ function ExamsPage() {
         </div>
       </Card>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được đề">
-          {error}
-        </Alert>
-      ) : null}
 
       {loading && !exams.length ? (
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -296,7 +289,7 @@ function ExamsPage() {
             itemLabel="đề"
           />
         </>
-      ) : !error ? (
+      ) : (
         <div className="mt-6">
           <EmptyState
             icon={FileQuestion}
@@ -321,7 +314,7 @@ function ExamsPage() {
             }
           />
         </div>
-      ) : null}
+      )}
 
       <div className="mt-8 overflow-hidden rounded-xl border border-line bg-surface-raised">
         <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">

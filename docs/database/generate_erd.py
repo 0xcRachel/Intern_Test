@@ -15,7 +15,7 @@ for path in sorted((ROOT / 'database/migrations').glob('*.php')):
             if not m:
                 continue
             typ, args, tail = m.groups()
-            if typ == 'index':
+            if typ in {'index', 'unique'}:
                 continue
             if typ == 'timestamps':
                 cols.extend([('created_at', 'timestamp', '?'), ('updated_at', 'timestamp', '?')])
@@ -41,17 +41,41 @@ for path in sorted((ROOT / 'database/migrations').glob('*.php')):
             cols.append((field, typ, flag.strip()))
         tables[name] = cols
 
+# Columns added by later ALTER TABLE migrations. Keeping these additions here
+# lets the diagram stay accurate without requiring a live database connection.
+additions = {
+    'users': [
+        ('avatar', 'varchar', '?'), ('provider', 'varchar', '?'),
+        ('provider_id', 'varchar', '?'), ('target_band', 'varchar(16)', '?'),
+        ('bio', 'text', '?'),
+    ],
+    'packages': [
+        ('slug', 'varchar', 'UQ ?'), ('level', 'varchar(32)', ''),
+        ('duration_hours', 'uint', ''), ('rating', 'decimal(3,2)', ''),
+        ('students_count', 'uint', ''), ('is_featured', 'boolean', ''),
+        ('outcomes', 'json', '?'),
+    ],
+    'documents': [('preview_content', 'json', '?')],
+}
+for name, columns in additions.items():
+    existing = {field for field, _, _ in tables.get(name, [])}
+    tables[name].extend(column for column in columns if column[0] not in existing)
+
 hybrid = {'attempts', 'activity_logs', 'preview_logs'}
 positions = {'exams': (40,180), 'questions': (480,180), 'options': (920,180),
              'users': (40,570), 'attempts': (480,570), 'activity_logs': (920,570),
              'packages': (40,1190), 'units': (480,1190), 'documents': (920,1190),
-             'preview_logs': (920,1580)}
+             'coupons': (40,1780), 'orders': (480,1780), 'order_items': (920,1780),
+             'enrollments': (480,2280), 'preview_logs': (920,2280)}
 # Parent, child, parent cardinality, SQL constraint, child field.
 rels = [('exams','questions','1',True,'exam_id'), ('questions','options','1',True,'question_id'),
         ('users','attempts','1',False,'user_id'), ('exams','attempts','1',False,'exam_id'),
         ('users','activity_logs','0..1',False,'user_id'), ('packages','units','1',True,'package_id'),
         ('units','documents','1',True,'unit_id'), ('documents','preview_logs','1',False,'document_id'),
-        ('users','preview_logs','0..1',False,'user_id')]
+        ('users','preview_logs','0..1',False,'user_id'), ('users','orders','1',True,'user_id'),
+        ('orders','order_items','1',True,'order_id'), ('packages','order_items','0..1',False,'package_id'),
+        ('users','enrollments','1',True,'user_id'), ('packages','enrollments','1',True,'package_id'),
+        ('orders','enrollments','0..1',False,'order_id')]
 infra = [n for n in tables if n not in positions]
 infra_pos = {n: (40+(i%3)*440, 180+(i//3)*460) for i,n in enumerate(infra)}
 infra_pos['users'] = (40,1560)
@@ -84,6 +108,12 @@ def make_page(title, pos, relations, filename, height):
             points=[(ax+170,ay),(ax+170,510),(bx+170,510),(bx+170,by)]
         elif a == 'users' and b == 'preview_logs':
             points=[(ax+170,ay+heights[a]),(ax+170,1130),(880,1130),(880,by+90),(bx,by+90)]
+        elif a == 'users' and b == 'orders':
+            points=[(ax+340,ay+100),(420,ay+100),(420,by+100),(bx,by+100)]
+        elif a == 'users' and b == 'enrollments':
+            points=[(ax+170,ay+heights[a]),(ax+170,2140),(bx+170,2140),(bx+170,by)]
+        elif a == 'orders' and b == 'enrollments':
+            points=[(ax+170,ay+heights[a]),(ax+170,2200),(bx+170,2200),(bx+170,by)]
         elif a == 'users' and b in {'sessions','personal_access_tokens'}:
             lane=420 if b == 'sessions' else 860
             points=[(ax+340,ay+100),(lane,ay+100),(lane,by+100),(bx,by+100)]
@@ -124,7 +154,7 @@ def make_page(title, pos, relations, filename, height):
     svg.append('</svg>')
     (OUT/(filename+'.svg')).write_text('\n'.join(svg),encoding='utf-8')
 
-make_page('ERD / Application data',positions,rels,'erd-domain',1990)
+make_page('ERD / Application data',positions,rels,'erd-domain',2700)
 make_page('ERD / Laravel infrastructure',infra_pos,infra_rels,'erd-infrastructure',1940)
 E.indent(mx)
 E.ElementTree(mx).write(OUT/'testintern-erd.drawio',encoding='utf-8',xml_declaration=True)
@@ -133,17 +163,17 @@ md=['# Database ERD — TestIntern','',
     'Mở `testintern-erd.drawio` tại https://app.diagrams.net bằng File → Open From → Device. Có hai trang: nghiệp vụ và hạ tầng.',
     'SVG là bản xem nhanh; file drawio cho phép sửa từng bảng và đường nối.', '',
     '## Cách đọc và các điểm cần chú ý', '',
-    '- 18 bảng được khai báo trong migrations; bảng quản lý `migrations` do Laravel tạo không nằm trong 18 bảng này.',
-    '- 10 thực thể nghiệp vụ, bao gồm users; trang hạ tầng có 8 bảng khác và lặp lại users để thể hiện liên kết.',
+    '- 22 bảng được khai báo trong migrations; bảng quản lý `migrations` do Laravel tạo không nằm trong 22 bảng này.',
+    '- Trang nghiệp vụ bao gồm users, ngân hàng đề, catalog khóa học, checkout/enrollment và các log lai SQL/MongoDB; trang hạ tầng chứa cache, queue, session và token.',
     '- `attempts`, `activity_logs`, `preview_logs` dùng MongoDB khi PHP nạp extension mongodb và `MONGO_ENABLED` khác false. Nếu không có extension hoặc `MONGO_ENABLED=false`, model dùng database SQL mặc định. Không tự fallback khi MongoDB mất kết nối.',
     '- Các cột và dấu nullable thể hiện schema SQL. MongoDB không có migration validator; kiểu BSON được suy ra từ fillable, casts và các lệnh ghi của ứng dụng.',
-    '- SQL có 6 FK cascade: questions.exam_id, options.question_id, units.package_id, documents.unit_id, attempts.user_id và attempts.exam_id. Hai FK của attempts chỉ có tác dụng ở nhánh SQL.',
+    '- SQL có các FK cascade/null-on-delete cho ngân hàng đề, catalog, orders và enrollments. Hai FK của attempts chỉ có tác dụng ở nhánh SQL; order_items.package_id và enrollments.order_id dùng null-on-delete.',
     '- activity_logs.user_id, preview_logs.user_id, preview_logs.document_id và sessions.user_id là tham chiếu logic, không được migration ràng buộc FK. Log có thể tồn tại sau khi đối tượng nguồn bị xóa.',
     '- personal_access_tokens dùng quan hệ polymorphic (tokenable_type, tokenable_id). User sử dụng HasApiTokens; migration không giới hạn tokenable chỉ là User.',
     '- password_reset_tokens.email là PK, không có FK đến users.email.',
     '- attempts.questions lưu snapshot câu hỏi và options; submitted_answers, answers, wrong_questions là mảng nhúng, không phải bảng trung gian. Trên SQL chúng là JSON text; trên MongoDB là native BSON array.',
     '- activity_logs.metadata/properties có thể chứa exam_id và attempt_id tùy sự kiện; không phải FK hay cột độc lập. Trên MongoDB chúng là BSON document/array.',
-    '- Chưa có quan hệ giữa packages và exams, cũng chưa thấy bảng mua gói/enrollment trong migrations hiện tại.',
+    '- `orders.coupon_code` là snapshot mã giảm giá, không phải FK tới `coupons`; order item cũng lưu snapshot title/slug/price để giữ lịch sử đơn hàng.',
     '- Cardinality trên đường tham chiếu logic thể hiện ý định của ứng dụng, không bảo đảm toàn vẹn bằng database.', '',
     '## Chỉ mục MongoDB', '',
     '- `attempts(user_id, created_at)` và `attempts(exam_id, status, created_at)` cho lịch sử làm bài và thống kê theo đề.',
@@ -192,7 +222,7 @@ md += ['## MongoDB collections', '',
        '| created_at, updated_at | date | Laravel timestamps |', '']
 md += ['## Nguồn kiểm tra', '', '- database/migrations/*.php', '- app/Models/*.php', '- app/Casts/NativeArray.php', '- app/Console/Commands/EnsureMongoIndexes.php', '- config/database.php', '- app/Services/ExamService.php', '- app/Http/Controllers/DocumentController.php', '- app/Listeners/LogAttemptActivity.php', '- app/Listeners/LogExamActivity.php']
 (OUT/'README.md').write_text('\n'.join(md)+'\n',encoding='utf-8')
-assert len(tables)==18, len(tables)
+assert len(tables)==22, len(tables)
 for f in ['erd-domain.svg','erd-infrastructure.svg','testintern-erd.drawio']:
     E.parse(OUT/f)
-print(f'Generated 18 tables, {len(rels)+len(infra_rels)} relationships, 2 diagram pages.')
+print(f'Generated 22 tables, {len(rels)+len(infra_rels)} relationships, 2 diagram pages.')

@@ -15,9 +15,9 @@ import {
 import { api, errorMessage } from "../../lib/api";
 import { useAuth } from "../../context/auth";
 import { Pagination } from "../../components/pagination";
+import { useNotifications } from "../../components/notifications";
 import { Reveal } from "../../components/reveal";
 import {
-  Alert,
   Button,
   Card,
   ConfirmDialog,
@@ -35,17 +35,16 @@ export function meta() {
 
 export default function AdminExams() {
   const { token } = useAuth();
+  const notifications = useNotifications();
   const [exams, setExams] = useState([]);
   const [meta, setMeta] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
   async function load(query = search, page = 1) {
     setLoading(true);
-    setError("");
     try {
       const params = new URLSearchParams({
         per_page: "20",
@@ -56,7 +55,7 @@ export default function AdminExams() {
       setExams(data?.data || []);
       setMeta(data?.meta || null);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không tải được đề" });
     } finally {
       setLoading(false);
     }
@@ -69,13 +68,12 @@ export default function AdminExams() {
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
-    setError("");
     try {
       await api(`/admin/exams/${deleteTarget.id}`, { method: "DELETE", token });
       setDeleteTarget(null);
       await load(search, meta?.current_page || 1);
     } catch (requestError) {
-      setError(errorMessage(requestError));
+      notifications.error(errorMessage(requestError), { title: "Không thể xóa đề" });
     } finally {
       setDeleting(false);
     }
@@ -194,11 +192,6 @@ export default function AdminExams() {
         </form>
       </Card>
 
-      {error ? (
-        <Alert className="mt-5" tone="error" title="Không tải được đề">
-          {error}
-        </Alert>
-      ) : null}
 
       <Card className="mt-6 overflow-hidden">
         <div className="flex flex-col gap-2 border-b border-line bg-canvas/45 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
